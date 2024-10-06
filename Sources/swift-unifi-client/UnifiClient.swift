@@ -8,7 +8,7 @@
 import Foundation
 import os
 
-let unifiClientLogger = Logger(subsystem: "com.alteredtech.unifi", category: "UnifiClient")
+let unifiClientLogger = Logger(subsystem: "io.alteredtech.unifi", category: "UnifiClient")
 
 class UnifiClient {
     internal let url: String
