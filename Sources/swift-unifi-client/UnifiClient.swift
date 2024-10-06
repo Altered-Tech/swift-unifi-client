@@ -42,7 +42,7 @@ class UnifiClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = HTTPMethod.POST.rawValue
         request.httpBody = basicAuth.serialize()
-        printURLRequestDetails(request: request)
+        
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             let format = try JSONSerialization.jsonObject(with: data, options: [])
@@ -138,37 +138,4 @@ class UnifiClient {
             throw error
         }
     }
-}
-
-func printURLRequestDetails(request: URLRequest) {
-    // Print URL
-    if let url = request.url {
-        print("URL: \(url)")
-    } else {
-        print("URL: nil")
-    }
-
-    // Print HTTP Method
-    print("HTTP Method: \(request.httpMethod ?? "nil")")
-    
-    // Print Headers
-    if let headers = request.allHTTPHeaderFields {
-        print("Headers:")
-        for (key, value) in headers {
-            print("\(key): \(value)")
-        }
-    } else {
-        print("Headers: nil")
-    }
-
-    // Print Body (if available)
-    if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
-        print("Body: \(bodyString)")
-    } else {
-        print("Body: nil")
-    }
-
-    // Print other properties (optional)
-    print("Cache Policy: \(request.cachePolicy)")
-    print("Timeout Interval: \(request.timeoutInterval)")
 }

@@ -1,5 +1,5 @@
 //
-//  Response.swift
+//  UnifiResponse.swift
 //  Helix
 //
 //  Created by Michael Einreinhof on 10/1/24.
