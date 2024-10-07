@@ -15,7 +15,7 @@ public class UnifiClient {
     private let basicAuth: BasicAuth
     internal var cookie: Data? = nil
     
-    init(url: String, basicAuth: BasicAuth) async {
+    public init(url: String, basicAuth: BasicAuth) async {
         self.url = url
         self.basicAuth = basicAuth
         do {
@@ -108,7 +108,7 @@ public class UnifiClient {
         return queryItems
     }
     
-    internal func getData<T: Codable>(path: String, parameters: [String: String] = [:], method: HTTPMethod) async throws -> T? {
+    public func getData<T: Codable>(path: String, parameters: [String: String] = [:], method: HTTPMethod) async throws -> T? {
         let queryItems = buildQuery(parameters)
         do {
             let request = try buildRequest(with: path, queryItems: queryItems, method: method)

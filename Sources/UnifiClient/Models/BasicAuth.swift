@@ -11,12 +11,12 @@ public struct BasicAuth {
     let username: String
     let password: String
     
-    init(username: String, password: String) {
+    public init(username: String, password: String) {
         self.username = username
         self.password = password
     }
     
-    func serialize() -> Data? {
+    public func serialize() -> Data? {
         let userData: [String: String] = ["username": username, "password": password]
         
         do {
