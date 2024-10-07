@@ -10,7 +10,7 @@ import os
 
 let unifiClientLogger = Logger(subsystem: "io.alteredtech.unifi", category: "UnifiClient")
 
-class UnifiClient {
+public class UnifiClient {
     internal let url: String
     private let basicAuth: BasicAuth
     internal var cookie: Data? = nil

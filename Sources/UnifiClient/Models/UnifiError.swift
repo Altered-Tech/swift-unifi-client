@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum UnifiError: Error {
+public enum UnifiError: Error {
     case unauthorized(Data)
     case notFound(String)
     case unknownStatusCode(Int)
@@ -18,7 +18,7 @@ enum UnifiError: Error {
     case forbidden(Data)
 }
 
-struct UnifiLoginError: Codable {
+public struct UnifiLoginError: Codable {
     let code: String
     let message: String
     let level: String

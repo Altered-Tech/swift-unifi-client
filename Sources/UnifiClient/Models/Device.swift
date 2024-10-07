@@ -8,7 +8,7 @@
 import Foundation
 
 extension UnifiClient {
-    func devices(site: String) async throws -> [UnifiDevice]? {
+    public func devices(site: String) async throws -> [UnifiDevice]? {
         let path = "/proxy/network/api/s/\(site)/stat/device-basic"
         do {
             let result: UnifiResponse<UnifiDevice>? = try await getData(path: path, method: .GET)
@@ -20,7 +20,7 @@ extension UnifiClient {
     }
 }
 
-struct UnifiDevice: Codable {
+public struct UnifiDevice: Codable {
     let mac: String
     let state: Int
     let adopted: Bool
