@@ -14,6 +14,7 @@ public class UnifiClient {
     internal let url: String
     private let basicAuth: BasicAuth
     internal var cookie: Data? = nil
+    let basePath: String = "/proxy/network/api/s"
     
     public init(url: String, basicAuth: BasicAuth) async {
         self.url = url
