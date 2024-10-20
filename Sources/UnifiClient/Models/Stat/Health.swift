@@ -1,52 +1,45 @@
+////
+////  Health.swift
+////  swift-unifi-client
+////
+////  Created by Michael Einreinhof on 10/11/24.
+////
 //
-//  Health.swift
-//  swift-unifi-client
+//extension UnifiClient {
+//    public func health(site: String) async throws -> [UnifiHealth]? {
+//        let path: String = "\(basePath)/\(site)/stat/health"
+//        do {
+//            let result: UnifiResponse<UnifiHealth>? = try await getData(path: path, method: .GET)
+//            return result?.data ?? nil
+//        } catch {
+//            unifiClientLogger.error("Failed to get health for site \(site): \(error)")
+//            throw error
+//        }
+//    }
+//}
 //
-//  Created by Michael Einreinhof on 10/11/24.
+//public struct UnifiHealth: Codable {
+//    let subsystem: Subsystem
+//    let numUser, numGuest, numIot, txBytesR: Int?
+//    let rxBytesR: Int?
+//    let status: String
+//    let numAp, numAdopted, numDisabled, numDisconnected: Int?
+//    let numPending, numGw, numSw: Int?
 //
-
-extension UnifiClient {
-    public func health(site: String) async throws -> [UnifiHealth]? {
-        let path: String = "\(basePath)/\(site)/stat/health"
-        do {
-            let result: UnifiResponse<UnifiHealth>? = try await getData(path: path, method: .GET)
-            return result?.data ?? nil
-        } catch {
-            unifiClientLogger.error("Failed to get health for site \(site): \(error)")
-            throw error
-        }
-    }
-}
-
-public struct UnifiHealth: Codable {
-    let subsystem: String
-    let users: Int?
-    let guests: Int?
-    let iots: Int?
-    let txBytes: Int?
-    let rxBytes: Int?
-    let status: String
-    let aps: Int?
-    let adopted: Int?
-    let disabled: Int?
-    let disconnected: Int?
-    let pending: Int?
-    let gateways: Int?
-    let switches: Int?
-    
-    enum CodingKeys: String, CodingKey {
-        case subsystem, status
-        case users = "num_user"
-        case guests = "num_guest"
-        case iots = "num_iot"
-        case txBytes = "tx_bytes-r"
-        case rxBytes = "rx_bytes-r"
-        case aps = "num_ap"
-        case adopted = "num_adopted"
-        case disabled = "num_disabled"
-        case disconnected = "num_disconnected"
-        case pending = "num_pending"
-        case gateways = "num_gw"
-        case switches = "num_sw"
-    }
-}
+//    enum CodingKeys: String, CodingKey {
+//        case subsystem
+//        case numUser = "num_user"
+//        case numGuest = "num_guest"
+//        case numIot = "num_iot"
+//        case txBytesR = "tx_bytes-r"
+//        case rxBytesR = "rx_bytes-r"
+//        case status
+//        case numAp = "num_ap"
+//        case numAdopted = "num_adopted"
+//        case numDisabled = "num_disabled"
+//        case numDisconnected = "num_disconnected"
+//        case numPending = "num_pending"
+//        case numGw = "num_gw"
+//        case numSw = "num_sw"
+//    }
+//}
