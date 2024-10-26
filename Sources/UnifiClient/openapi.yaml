@@ -17,12 +17,15 @@ servers:
       port:
         default: '8443'
 
+security:
+  - cookieAuth: []
+
 paths:
   /api/auth/login:
     post:
       operationId: login
       tags:
-      - auth
+      - Auth
       summary: Authenticate user and return session cookie
       description: Login to Unifi console
       requestBody:
@@ -31,40 +34,65 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-              - username
-              - password
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-                  format: password
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: Successful login
-          content:
-            application/json:
+          headers:
+            SetCookie:
               schema:
-                $ref: '#/components/schemas/Authentication'
+                type: string
+                example: TOKEN=abcd1234; path=/; expires=Thu, 24 Oct 2024 12:23:34 GMT; samesite=none; secure; httponly; partitioned
+
         '403':
           description: Invalid Credentials
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-                  level:
-                    type: string
-        
+                $ref: '#/components/schemas/Error'
+                    
+  /proxy/network/api/s/{site}/self:
+    get:
+      operationId: user
+      tags:
+      - User
+      parameters:
+      - in: path
+        name: site
+        schema:
+          type: string
+        required: true
+      summary: Get info of current user
+      description: User Info
+      responses:
+        '200':
+          description: Successful User Info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
   
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: TOKEN
   schemas:
+    LoginRequest:
+      title: LoginUserRequest
+      description: User Credentials
+      type: object
+      additionalProperties: false
+      required:
+      - username
+      - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
     Authentication:
       title: AuthenticatedUser
       description: User properties
@@ -317,3 +345,1084 @@ components:
         - system_role
         - unique_id
         - update_time
+    Error:
+      title: ErrorResponse
+      description: Error response message
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        level:
+          type: string
+    User:
+      title: UserInfo
+      description: Info on the currently login in user
+      type: object
+      additionalProperties: false
+      properties:
+        meta:
+          type: object
+          properties:
+            rc:
+              type: string
+              example: ok
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              admin_id:
+                type: string
+                example: 6489a6c9
+              avatar_url:
+                type: string
+                example: /proxy/users/avatar/73-d6-4c-b1aa
+              device_id:
+                type: string
+                example: 602000000063522F10:133098839
+              email:
+                type: string
+                example: example@email.com
+              email_alert_enabled:
+                type: boolean
+              email_alert_grouping_delay:
+                type: integer
+                format: int32
+                example: 60
+              email_alert_grouping_enabled:
+                type: boolean
+              first_name:
+                type: string
+                example: UniFi
+              html_email_enabled:
+                type: boolean
+              is_owner:
+                type: boolean
+              is_professional_installer:
+                type: boolean
+              is_super:
+                type: boolean
+              last_name:
+                type: string
+                example: User
+              last_site_name:
+                type: string
+                example: default
+              name:
+                type: string
+                example: UniFi User
+              push_alert_enabled:
+                type: boolean
+              requires_new_password:
+                type: boolean
+              super_site_permissions:
+                type: array
+                items:
+                  type: object
+              ubic_name:
+                type: string
+                example: example@email.com
+              ubic_uuid:
+                type: string
+                example: 85f-95-4a-9b-c5b4a
+              ui_settings:
+                type: object
+                properties:
+                  neverCheckForUpdate:
+                    type: boolean
+                  statisticsPreferedBps:
+                    type: string
+                    example:
+                  topologyViewSettings:
+                    type: object
+                    properties:
+                      showWiredPorts:
+                        type: boolean
+                      isolated:
+                        type: boolean
+                      showWifiStandards:
+                        type: boolean
+                      showWifiExperience:
+                        type: boolean
+                      show5GClients:
+                        type: boolean
+                      showWiredClients:
+                        type: boolean
+                      offline:
+                        type: boolean
+                      showSSID:
+                        type: boolean
+                      showRadioChannel:
+                        type: boolean
+                      showStpPriority:
+                        type: boolean
+                      online:
+                        type: boolean
+                      showWiredSpeed:
+                        type: boolean
+                      managed_by_another_console:
+                        type: boolean
+                      pending_adoption:
+                        type: boolean
+                      showAllClients:
+                        type: boolean
+                      showAllDevices:
+                        type: boolean
+                      show2GClients:
+                        type: boolean
+                  statisticsPrefferedTZ:
+                    type: string
+                    example: SITE
+                  preferredLanguage:
+                    type: string
+                    example: en
+                  tables:
+                    type: object
+                    properties:
+                      unifiDeviceUnmanaged:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      logs/threats:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              device
+                              counterpart
+                              counterpart_location
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              device
+                              counterpart
+                              counterpart_location
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      hotspot/payments:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              _id
+                              name
+                              hotspotPackage
+                            ]
+                          sortBy:
+                            type: string
+                            example: time
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              _id
+                              name
+                              hotspotPackage
+                            ]
+                          isAscending:
+                            type: boolean
+                      logs/clientEvents:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      unifiDeviceConnect:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      unifiDeviceProtect:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      ports:
+                        type: object
+                        properties:
+                          filters:
+                            type: object
+                            properties:
+                              poe:
+                                type: object
+                                properties:
+                                  poe_passive_24v:
+                                    type: boolean
+                                  poe+:
+                                    type: boolean
+                                  poe:
+                                    type: boolean
+                                  poe++:
+                                    type: boolean
+                                  poe_passthrough:
+                                    type: boolean
+                                  none:
+                                    type: boolean
+                              media:
+                                type: object
+                                properties:
+                                  2P5GE:
+                                    type: boolean
+                                  SFP28:
+                                    type: boolean
+                                  SFPPLUS:
+                                    type: boolean
+                                  40GE:
+                                    type: boolean
+                                  25GE:
+                                    type: boolean
+                                  100GE:
+                                    type: boolean
+                                  QSFP28:
+                                    type: boolean
+                                  10GE:
+                                    type: boolean
+                                  SFP:
+                                    type: boolean
+                                  GE:
+                                    type: boolean
+                                  FE:
+                                    type: boolean
+                              device:
+                                type: object
+                                properties:
+                                  device:
+                                    type: string
+                                    example:
+                              status:
+                                type: object
+                                properties:
+                                  available:
+                                    type: boolean
+                                  in_use:
+                                    type: boolean
+                              network:
+                                type: object
+                                properties:
+                                  network:
+                                    type: string
+                                    example:
+                      wifiConnectivity/eventGroups:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              start_time
+                              failure_stage
+                              failure_reason
+                            ]
+                          sortBy:
+                            type: string
+                            example: start_time
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              start_time
+                              failure_stage
+                              failure_reason
+                            ]
+                          isAscending:
+                            type: boolean
+                      logs/systemCritical:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              event
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              event
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      client:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              status
+                              clientName
+                              physicalName
+                              Uplink_apPort
+                              local_dns_record
+                            ]
+                          columnSize:
+                            type: object
+                            properties:
+                              physicalName:
+                                type: integer
+                                format: int32
+                                example: 142
+                          sortBy:
+                            type: string
+                            example: dailyUsage
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              status
+                              clientName
+                              physicalName
+                            ]
+                          filters:
+                            type: object
+                            properties:
+                              clients_type:
+                                type: object
+                                properties:
+                                  local_dns_record:
+                                    type: boolean
+                                  guests:
+                                    type: boolean
+                                  fixed_ip_address:
+                                    type: boolean
+                                  users:
+                                    type: boolean
+                              connection_type:
+                                type: object
+                                properties:
+                                  wired:
+                                    type: boolean
+                                  na:
+                                    type: boolean
+                                  vpn:
+                                    type: boolean
+                                  ax:
+                                    type: boolean
+                                  teleport:
+                                    type: boolean
+                                  ng:
+                                    type: boolean
+                              configuration:
+                                type: object
+                                properties:
+                                  configured:
+                                    type: boolean
+                                  default:
+                                    type: boolean
+                              device:
+                                type: object
+                                properties:
+                                  device:
+                                    type: string
+                                    example:
+                              status:
+                                type: object
+                                properties:
+                                  offline:
+                                    type: boolean
+                                  blocked:
+                                    type: boolean
+                                  active:
+                                    type: boolean
+                          isAscending:
+                            type: boolean
+                      unifiDeviceAccess:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      logs/adminActivity:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      settings/portAndIpGroups:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              port-ip-groups-name
+                              port-ip-groups-group_type
+                              port-ip-groups-group_members
+                            ]
+                          sortBy:
+                            type: string
+                            example: port-ip-groups-name
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              port-ip-groups-name
+                              port-ip-groups-group_type
+                              port-ip-groups-group_members
+                            ]
+                          isAscending:
+                            type: boolean
+                      insights/wifiPerformanceAp:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              ap
+                              clients_count
+                              satisfaction_avg
+                              tx_retries_percentage
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              ap
+                              clients_count
+                              satisfaction_avg
+                              tx_retries_percentage
+                            ]
+                      logs/ap:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      hotspot/vouchers:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              code
+                              create_time
+                              qos_rate_max_down
+                            ]
+                          sortBy:
+                            type: string
+                            example: create_time
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              code
+                              create_time
+                              qos_rate_max_down
+                            ]
+                          isAscending:
+                            type: boolean
+                      logs/updates:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              event
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              event
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      insights/wifiPerformanceClient:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              client
+                              satisfaction_avg
+                              phy_rate_most_common
+                              tx_retries_percentage
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              client
+                              satisfaction_avg
+                              phy_rate_most_common
+                              tx_retries_percentage
+                            ]
+                      logs/triggers:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              timestamp
+                            ]
+                          rowsPerPage:
+                            type: integer
+                            format: int32
+                            example: 25
+                      insights/wifiScanner:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              apCount
+                              security
+                            ]
+                          sortBy:
+                            type: string
+                            example: apCount
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              apCount
+                              security
+                            ]
+                          isAscending:
+                            type: boolean
+                      unifiDevicePorts:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              portSymbol
+                              portUplinkItemName
+                            ]
+                          sortBy:
+                            type: string
+                            example: portSymbol
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              portSymbol
+                              portUplinkItemName
+                            ]
+                          isAscending:
+                            type: boolean
+                      unifiDeviceNetwork:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      unifiDevice:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          custom:
+                            type: object
+                            properties:
+                              groupByApplication:
+                                type: boolean
+                          sortBy:
+                            type: string
+                            example: application
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      hotspot/guests:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              _id
+                              hostname
+                              authorized_by
+                            ]
+                          sortBy:
+                            type: string
+                            example: start
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              _id
+                              hostname
+                              authorized_by
+                            ]
+                          isAscending:
+                            type: boolean
+                      device:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              deviceName
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      unifiDeviceTalk:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              statusBall
+                              application
+                              updateStatus
+                              deviceVersion
+                            ]
+                          sortBy:
+                            type: string
+                            example: type
+                          initialColumns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              type
+                              application
+                              updateStatus
+                            ]
+                          isAscending:
+                            type: boolean
+                      settings/networks/ipLeases:
+                        type: object
+                        properties:
+                          columns:
+                            type: array
+                            items:
+                              type: string
+                            example: [
+                              name
+                              expirationDate
+                            ]
+                          sortBy:
+                            type: string
+                            example: name
+                          isAscending:
+                            type: boolean
+                  preferences:
+                    type: object
+                    properties:
+                      enableSidePanelTabs:
+                        type: boolean
+                      isUbbAlignmentToolModalClosed:
+                        type: boolean
+                      isTopologyUnknownSwitchNotificationDismissed:
+                        type: boolean
+                      isNextAiSecurityFirstSubmit:
+                        type: boolean
+                      enableNewUI:
+                        type: boolean
+                      dashboardHighlighted:
+                        type: boolean
+                      trafficAndFirewallRulesMode:
+                        type: string
+                        example: SIMPLE
+                      dismissWlanOverrides:
+                        type: boolean
+                      useBrowserTheme:
+                        type: boolean
+                      timeFormat:
+                        type: string
+                        example: H:mm
+                      clientsRoute:
+                        type: string
+                        example: online
+                      isUlteModalClosed:
+                        type: boolean
+                      offlineClientTimeframe:
+                        type: integer
+                        format: int32
+                        example: 24
+                      isAppDark:
+                        type: boolean
+                      isEnhancedThreatUpdatesBannerHidden:
+                        type: boolean
+                      dashboardMinimized:
+                        type: boolean
+                      use24HourTime:
+                        type: boolean
+                      isTopologyClientThresholdEvaluated:
+                        type: boolean
+                  networksViewSettings:
+                    type: object
+                    properties:
+                      showVpnClientTable:
+                        type: boolean
+                      showVpnServerTable:
+                        type: boolean
+                      showVpnS2STable:
+                        type: boolean
+                      showNetworkTable:
+                        type: boolean
+                      showInternetTable:
+                        type: boolean
+                      showWifiTable:
+                        type: boolean
+                      showPolicyBasedRoutingTable:
+                        type: boolean
+                      showPortForwardingTable:
+                        type: boolean
+                  statisticsPreferBps:
+                    type: string
+                    example:
+                  version:
+                    type: string
+                    example: 602232E84F830000000006D3DCF5000000000726530F0000000063522F10:133098839:648b5c8f41f49d0d6709a6c9
+                  floorplan:
+                    type: object
+                    properties:
+                      app:
+                        type: string
+                        example: network
+                      coverage:
+                        type: object
+                        properties:
+                          wifi:
+                            type: string
+                            example: high
+                          legend:
+                            type: boolean
+                          palette:
+                            type: string
+                            example: deadzone
+                      pointer:
+                        type: string
+                        example: default
+                      topology:
+                        type: object
+                        properties:
+                          fit:
+                            type: string
+                            format: nullable
+                          expand:
+                            type: boolean
+                          squashed:
+                            type: boolean
+                          paginate:
+                            type: boolean
+                      project:
+                        type: object
+                        properties:
+                          unit:
+                            type: string
+                            example: metric
+                          tier:
+                            type: string
+                            example: value
+                          store:
+                            type: string
+                            example: us
+                      visual:
+                        type: object
+                        properties:
+                          stats:
+                            type: object
+                            properties:
+                              attributes:
+                                type: array
+                                items:
+                                  type: object
+                              opacity:
+                                type: integer
+                                format: int32
+                                example: 1
+                          scale:
+                            type: object
+                            properties:
+                              device:
+                                type: integer
+                                format: int32
+                                example: 1
+                          opacity:
+                            type: object
+                            properties:
+                              wall:
+                                type: integer
+                                format: int32
+                                example: 1
+                      version:
+                        type: string
+                        example: v22
+                      detections:
+                        type: object
+                        properties:
+                          show:
+                            type: string
+                            example: smart
+                          enabledTypes:
+                            type: object
+                            properties:
+                              person:
+                                type: boolean
+                              vehicle:
+                                type: boolean
+              uid:
+                type: string
+                example: 13432015-4dce-455a-923b-ca4fds548ce3
+              last_login_timestamp:
+                type: integer
+                format: int32
+                example: 0
+              last_site_id:
+                type: string
+                example: 648b5a7f4152ffd040a
+              site_id:
+                type: string
+                example: 648b5ad152ffd040a
+              site_name:
+                type: string
+                example: default
+              site_permissions:
+                type: array
+                items:
+                  type: object
+              site_role:
+                type: string
