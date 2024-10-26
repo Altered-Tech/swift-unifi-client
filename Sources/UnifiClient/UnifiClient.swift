@@ -40,4 +40,15 @@ public struct UnifiClient {
                 throw UnifiError.undocumented(statusCode: statusCode)
         }
     }
+    
+    public func user(site: String) async throws -> Components.Schemas.User {
+        let response = try await underlyingClient.user(.init(path: .init(site: site)))
+        switch response {
+                
+            case .ok(let value):
+                return try value.body.json
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode)
+        }
+    }
 }

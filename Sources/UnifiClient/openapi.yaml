@@ -17,8 +17,7 @@ servers:
       port:
         default: '8443'
 
-security:
-  - cookieAuth: []
+
 
 paths:
   /api/auth/login:
@@ -54,6 +53,8 @@ paths:
   /proxy/network/api/s/{site}/self:
     get:
       operationId: user
+      security:
+      - cookieAuth: []
       tags:
       - User
       parameters:
