@@ -16,7 +16,7 @@ public struct UnifiClient {
         self.underlyingClient = underlyingClient
     }
     
-    public init(url: String, username: String, password: String, session: URLSession = URLSession(configuration: .default)) async throws {
+    public init(url: String, session: URLSession = URLSession(configuration: .default)) async throws {
         let transportConfig = URLSessionTransport.Configuration(session: session)
         let transport = URLSessionTransport(configuration: transportConfig)
         self.init(underlyingClient: Client(serverURL: URL(string: url)!, transport: transport))
