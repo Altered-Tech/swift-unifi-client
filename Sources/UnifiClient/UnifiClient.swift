@@ -31,11 +31,7 @@ public struct UnifiClient {
             case .ok(let value):
                 return value.headers.SetCookie
             case .forbidden(let error):
-                if let message = try error.body.json.message {
-                    throw UnifiError.forbidden(message: message)
-                } else {
-                    throw UnifiError.forbidden(message: "No Error Message")
-                }
+                throw UnifiError.forbidden(message: try error.body.json.message ?? "Forbidden")
             case .undocumented(statusCode: let statusCode, _):
                 throw UnifiError.undocumented(statusCode: statusCode)
         }
@@ -47,6 +43,10 @@ public struct UnifiClient {
                 
             case .ok(let value):
                 return try value.body.json
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .forbidden(let error):
+                throw UnifiError.forbidden(message: try error.body.json.message ?? "Forbidden")
             case .undocumented(statusCode: let statusCode, _):
                 throw UnifiError.undocumented(statusCode: statusCode)
         }

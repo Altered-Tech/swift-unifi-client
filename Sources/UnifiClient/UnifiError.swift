@@ -8,6 +8,9 @@
 import Foundation
 
 public enum UnifiError: Error {
+    /// 401
+    case unauthorized(message: String)
+    /// 403
     case forbidden(message: String)
     case undocumented(statusCode: Int, message: String? = nil)
 }

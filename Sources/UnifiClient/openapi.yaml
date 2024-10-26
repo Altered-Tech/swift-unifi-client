@@ -55,6 +55,7 @@ paths:
       operationId: user
       security:
       - cookieAuth: []
+      - basicAuth: []
       tags:
       - User
       parameters:
@@ -72,6 +73,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Invalid Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   
 components:
   securitySchemes:
@@ -79,6 +92,9 @@ components:
       type: apiKey
       in: cookie
       name: TOKEN
+    basicAuth:
+      type: http
+      scheme: basic
   schemas:
     LoginRequest:
       title: LoginUserRequest
