@@ -37,8 +37,11 @@ public struct UnifiClient {
         }
     }
     
-    public func user(site: String) async throws -> Components.Schemas.User {
-        let response = try await underlyingClient.user(.init(path: .init(site: site)))
+    public func user(site: String, cookie: String) async throws -> Components.Schemas.User {
+        let response = try await underlyingClient.user(
+            path: .init(site: site),
+            headers: .init(SetCookie: cookie)
+        )
         switch response {
                 
             case .ok(let value):

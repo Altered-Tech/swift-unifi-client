@@ -64,7 +64,7 @@ paths:
           type: string
         required: true
       - in: header
-        name: Set-Cookie
+        name: SetCookie
         schema:
           type: string
         required: true
