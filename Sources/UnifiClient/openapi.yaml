@@ -23,6 +23,7 @@ paths:
   /api/auth/login:
     post:
       operationId: login
+      security: []
       tags:
       - Auth
       summary: Authenticate user and return session cookie
@@ -38,11 +39,15 @@ paths:
         '200':
           description: Successful login
           headers:
-            SetCookie:
+            Set-Cookie:
               schema:
                 type: string
+                description: Session cookie to be used for authenticated requests
                 example: TOKEN=abcd1234; path=/; expires=Thu, 24 Oct 2024 12:23:34 GMT; samesite=none; secure; httponly; partitioned
-
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Authentication'
         '403':
           description: Invalid Credentials
           content:
@@ -64,7 +69,7 @@ paths:
           type: string
         required: true
       - in: header
-        name: SetCookie
+        name: Set-Cookie
         schema:
           type: string
         required: true
@@ -111,9 +116,13 @@ components:
       properties:
         username:
           type: string
+          description: Username of the user
+          example: user
         password:
           type: string
           format: password
+          description: Password of the user
+          example: $pw
     Authentication:
       title: AuthenticatedUser
       description: User properties

@@ -29,7 +29,7 @@ public struct UnifiClient {
         switch response {
                 
             case .ok(let value):
-                return value.headers.SetCookie
+                return value.headers.Set_hyphen_Cookie
             case .forbidden(let error):
                 throw UnifiError.forbidden(message: try error.body.json.message ?? "Forbidden")
             case .undocumented(statusCode: let statusCode, _):
@@ -40,7 +40,7 @@ public struct UnifiClient {
     public func user(site: String, cookie: String) async throws -> Components.Schemas.User {
         let response = try await underlyingClient.user(
             path: .init(site: site),
-            headers: .init(SetCookie: cookie)
+            headers: .init(Set_hyphen_Cookie: cookie)
         )
         switch response {
                 
