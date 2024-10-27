@@ -55,12 +55,16 @@ paths:
       operationId: user
       security:
       - cookieAuth: []
-      - basicAuth: []
       tags:
       - User
       parameters:
       - in: path
         name: site
+        schema:
+          type: string
+        required: true
+      - in: header
+        name: Set-Cookie
         schema:
           type: string
         required: true
