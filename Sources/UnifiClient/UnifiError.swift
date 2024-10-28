@@ -14,3 +14,7 @@ public enum UnifiError: Error {
     case forbidden(message: String)
     case undocumented(statusCode: Int, message: String? = nil)
 }
+
+public enum UnifiDataError: Error {
+    case missingData(message: String)
+}

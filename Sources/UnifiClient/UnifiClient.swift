@@ -11,6 +11,8 @@ import OpenAPIURLSession
 
 public struct UnifiClient {
     private let underlyingClient: any APIProtocol
+    private var cookie: String? = nil
+    private var crsfToken: String? = nil
     
     internal init(underlyingClient: any APIProtocol) {
         self.underlyingClient = underlyingClient
@@ -22,14 +24,15 @@ public struct UnifiClient {
         self.init(underlyingClient: Client(serverURL: URL(string: url)!, transport: transport))
     }
     
-    public func login(username: String, password: String) async throws -> String? {
+    public mutating func login(username: String, password: String) async throws {
         let response = try await underlyingClient.login(
             .init(body: .json(.init(username: username, password: password)))
         )
         switch response {
                 
             case .ok(let value):
-                return value.headers.Set_hyphen_Cookie
+                self.cookie = value.headers.Set_hyphen_Cookie
+                self.crsfToken = value.headers.X_hyphen_Crsf_hyphen_Token
             case .forbidden(let error):
                 throw UnifiError.forbidden(message: try error.body.json.message ?? "Forbidden")
             case .undocumented(statusCode: let statusCode, _):
@@ -37,10 +40,16 @@ public struct UnifiClient {
         }
     }
     
-    public func user(site: String, cookie: String) async throws -> Components.Schemas.User {
+    public func user(site: String) async throws -> Components.Schemas.User {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let response = try await underlyingClient.user(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch response {
                 
@@ -55,10 +64,16 @@ public struct UnifiClient {
         }
     }
     
-    public func deviceBasic(site: String, cookie: String) async throws -> Components.Schemas.DeviceBasic {
+    public func deviceBasic(site: String) async throws -> Components.Schemas.DeviceBasic {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getDeviceBasic(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -73,10 +88,16 @@ public struct UnifiClient {
         }
     }
     
-    public func deviceDetailed(site: String, cookie: String) async throws -> Components.Schemas.Device {
+    public func deviceDetailed(site: String) async throws -> Components.Schemas.Device {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getDeviceDetail(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -91,10 +112,16 @@ public struct UnifiClient {
         }
     }
     
-    public func events(site: String, cookie: String) async throws -> Components.Schemas.Event {
+    public func events(site: String) async throws -> Components.Schemas.Event {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getSystemEvents(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -109,10 +136,16 @@ public struct UnifiClient {
         }
     }
     
-    public func alarms(site: String, cookie: String) async throws -> Components.Schemas.Event {
+    public func alarms(site: String) async throws -> Components.Schemas.Event {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getSystemAlarm(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -127,10 +160,16 @@ public struct UnifiClient {
         }
     }
     
-    public func systemInfo(site: String, cookie: String) async throws -> Components.Schemas.SystemInfo {
+    public func systemInfo(site: String) async throws -> Components.Schemas.SystemInfo {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getSystemInfo(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -145,10 +184,16 @@ public struct UnifiClient {
         }
     }
     
-    public func currentChannel(site: String, cookie: String) async throws -> Components.Schemas.CurrentChannel {
+    public func currentChannel(site: String) async throws -> Components.Schemas.CurrentChannel {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getCurrentChannel(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -163,10 +208,16 @@ public struct UnifiClient {
         }
     }
     
-    public func countryCode(site: String, cookie: String) async throws -> Components.Schemas.CountryCodes {
+    public func countryCode(site: String) async throws -> Components.Schemas.CountryCodes {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getCountryCodes(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -181,10 +232,16 @@ public struct UnifiClient {
         }
     }
     
-    public func siteInfo(site: String, cookie: String) async throws -> Components.Schemas.SiteInfo {
+    public func siteInfo(site: String) async throws -> Components.Schemas.SiteInfo {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getSiteHealth(
             path: .init(site: site),
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -199,9 +256,15 @@ public struct UnifiClient {
         }
     }
     
-    public func siteAdminInfo(site: String, cookie: String) async throws -> Components.Schemas.AdminStats {
+    public func siteAdminInfo(site: String) async throws -> Components.Schemas.AdminStats {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getAllAdminStats(
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -216,9 +279,15 @@ public struct UnifiClient {
         }
     }
     
-    public func allSitesStats(site: String, cookie: String) async throws -> Components.Schemas.SiteStats {
+    public func allSitesStats(site: String) async throws -> Components.Schemas.SiteStats {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getAllSitesStats(
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
@@ -233,9 +302,15 @@ public struct UnifiClient {
         }
     }
     
-    public func allSitesInfo(site: String, cookie: String) async throws -> Components.Schemas.SiteInfo {
+    public func allSitesInfo(site: String) async throws -> Components.Schemas.SiteInfo {
+        guard let cookie, let crsfToken else {
+            throw UnifiDataError.missingData(message: "Missing cookie and crsfToken")
+        }
         let result = try await underlyingClient.getAllSitesInfo(
-            headers: .init(Set_hyphen_Cookie: cookie)
+            headers: .init(
+                Set_hyphen_Cookie: cookie,
+                X_hyphen_Crsf_hyphen_Token: crsfToken
+            )
         )
         switch result {
                 
