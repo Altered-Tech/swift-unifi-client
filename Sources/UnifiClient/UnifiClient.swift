@@ -53,6 +53,8 @@ public struct UnifiClient {
                 throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
             case .undocumented(statusCode: let statusCode, _):
                 throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+            case .notFound(let error):
+                throw UnifiError.notFound(message: try error.body.json.message ?? "Not Found")
         }
     }
     
