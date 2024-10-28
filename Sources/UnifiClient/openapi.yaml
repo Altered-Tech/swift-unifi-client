@@ -1,4537 +1,658 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
-  title: Unifi API
-  description: REST API for managing UDM Pro devices and networks.
-  version: 1.0.0
+  title: UniFi API
+  description: |-
+    The UniFi API was created to enable developers to programmatically monitor and manage UniFi deployments at scale. It provides robust tools to access and control your UniFi devices’ data, allowing you to retrieve detailed information, monitor performance, and manage your network infrastructure efficiently.  
+ 
+    UniFi API Version 0.1 centers around extracting data from the UniFi Site Manager (unifi.ui.com). Future versions will expand support to include more granular configurations, allowing management of individual sites and the devices within those sites.  
+ 
+    Your feedback is crucial in helping us enhance and customize the API to better meet your needs.
+
+  termsOfService: http://swagger.io/terms/
+  version: 0.0.1
 servers:
-  - description: UDM Pro API server
-    url: '{scheme}://{host}:{port}'
-    variables:
-      scheme:
-        enum:
-          - http
-          - https
-        default: https
-      host:
-        default: localhost
-      port:
-        default: '8443'
-
-
-
+  - url: https://api.ui.com/ea
 paths:
-  /api/auth/login:
-    post:
-      operationId: login
-      security: []
+  /host:
+    get:
       tags:
-      - Auth
-      summary: Authenticate user and return session cookie
-      description: Login to Unifi console
-      requestBody:
-        description: Fields to authenticate with the console
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
+        - Host
+      summary: List Hosts
+      description: |-
+        Retrieve a list of all hosts associated with the UI account making the API call.
+
+        **Note**: The structure of userData and reportedState may vary depending on the UniFi OS or Network Server version. The example provided is based on UniFi OS 4.0.6.
+      operationId: listHosts
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
       responses:
         '200':
-          description: Successful login
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hosts'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
           headers:
-            Set-Cookie:
+            Retry-After:
               schema:
                 type: string
-                description: Session cookie to be used for authenticated requests
-                example: TOKEN=abcd1234; path=/; expires=Thu, 24 Oct 2024 12:23:34 GMT; samesite=none; secure; httponly; partitioned
-            X-Crsf-Token:
+                examples: [5]
+        '500':
+          description: Failed to list hosts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /host/{id}:
+    get:
+      tags:
+        - Host
+      summary: Get Host by ID
+      description: |-
+        Retrieve detailed information about a specific host by ID.
+
+        **Note**: The structure of userData and reportedState may vary depending on the UniFi OS or Network Server version. The example provided is based on UniFi OS 4.0.6.
+      operationId: getHost
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostId'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
               schema:
                 type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Authentication'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-                    
-  /proxy/network/api/s/{site}/self:
-    get:
-      operationId: user
-      security:
-      - cookieAuth: []
-      tags:
-      - User
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Get info of current user
-      description: User Info
-      responses:
-        '200':
-          description: Successful User Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          description: Unauthorized
+                examples: [5]
+        '500':
+          description: Failed to get host
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
+        '502':
+          description: Bad gateway
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  
-  /proxy/network/api/self/sites:
-    get:
-      operationId: getAllSitesInfo
-      security:
-      - cookieAuth: []
-      tags:
-      - Sites
-      - Info
-      parameters:
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Get basic information for all sites on this controller
-      description: Get basic information for all sites on this controller
-      responses:
-        '200':
-          description: Successful Site Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteInfo'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      
-  /proxy/network/api/stat/sites:
-    get:
-      operationId: getAllSitesStats
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      - Sites
-      parameters:
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Same as self/sites with an additional information on health and new alerts for each site
-      description: Same as self/sites with an additional information on health and new alerts for each site
-      responses:
-        '200':
-          description: Successful Site Stats Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteStats'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-                
-  /proxy/network/api/stat/admin:
-    get:
-      operationId: getAllAdminStats
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      - Sites
-      parameters:
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List administrators and permissions for all sites
-      description: List administrators and permissions for all sites
-      responses:
-        '200':
-          description: Successful Admin Site Stats Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminStats'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-                
-  /proxy/network/api/s/{site}/stat/sites:
-    get:
-      operationId: getSiteHealth
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      - Site
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Health status of the site
-      description: Health status of the site
-      responses:
-        '200':
-          description: Successful Site Stats Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteInfo'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-                
-  /proxy/network/api/s/{site}/stat/ccode:
-    get:
-      operationId: getCountryCodes
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List of country codes
-      description: List of country codes
-      responses:
-        '200':
-          description: Successful Country Code Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CountryCodes'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /proxy/network/api/s/{site}/stat/current-channel:
-    get:
-      operationId: getCurrentChannel
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      - Channel
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List of country codes
-      description: List of country codes
-      responses:
-        '200':
-          description: Successful Channel
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CurrentChannel'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /proxy/network/api/s/{site}/stat/sysinfo:
-    get:
-      operationId: getSystemInfo
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Some high-level information about the controller
-      description: Some high-level information about the controller
-      responses:
-        '200':
-          description: Successful System Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SystemInfo'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /proxy/network/api/s/{site}/stat/event:
-    get:
-      operationId: getSystemEvents
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List site events by most recent first, 3000 result limit
-      description: List site events by most recent first, 3000 result limit
-      responses:
-        '200':
-          description: Successful System Events
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Event'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /proxy/network/api/s/{site}/stat/alarm:
-    get:
-      operationId: getSystemAlarm
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List alarms by most recent, 3000 result limit?
-      description: List alarms by most recent, 3000 result limit?
-      responses:
-        '200':
-          description: Successful System Events
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Event'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /proxy/network/api/s/{site}/stat/device:
-    get:
-      operationId: getDeviceDetail
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: Detailed list of all devices on site.
-      description: Detailed list of all devices on site.
-      responses:
-        '200':
-          description: Successful Detail Device Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Device'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /proxy/network/api/s/{site}/stat/device-basic:
-    get:
-      operationId: getDeviceBasic
-      security:
-      - cookieAuth: []
-      tags:
-      - Info
-      parameters:
-      - in: path
-        name: site
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: Set-Cookie
-        schema:
-          type: string
-        required: true
-      - in: header
-        name: X-Crsf-Token
-        schema:
-          type: string
-        required: true
-      summary: List of site devices with only 'adopted', 'disabled', 'mac', 'state', 'type' keys, useful for filtering on type
-      description: List of site devices with only 'adopted', 'disabled', 'mac', 'state', 'type' keys, useful for filtering on type
-      responses:
-        '200':
-          description: Successful Basic Device Info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeviceBasic'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Invalid Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
 components:
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: TOKEN
   schemas:
-    LoginRequest:
-      title: LoginUserRequest
-      description: User Credentials
+    Hosts:
       type: object
-      additionalProperties: false
-      required:
-      - username
-      - password
       properties:
-        username:
+        traceId:
           type: string
-          description: Username of the user
-          example: user
-        password:
+          examples: [a7dc15e0eb4527142d7823515b15f87d]
+        message:
           type: string
-          format: password
-          description: Password of the user
-          example: $pw
-    SiteInfo:
-      title: Basic Info on all Sites
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-              example: ok
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              anonymous_id:
-                type: string
-                example: 123hsad-432asd
-              name:
-                type: string
-                example: default
-              _id:
-                type: string
-                example: 123asd123asd
-              attr_no_delete:
-                type: boolean
-                example: true
-              attr_hidden_id:
-                type: string
-                example: default
-              desc:
-                type: string
-                example: Default
-              role:
-                type: string
-                example: admin
-              role_hotspot:
-                type: boolean
-                example: false
-              device_count:
-                type: integer
-                example: 4
-    SiteStats:
-      title: Info on all Sites and Stats
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-              example: ok
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              anonymous_id:
-                type: string
-                example: 123hsad-432asd
-              name:
-                type: string
-                example: default
-              _id:
-                type: string
-                example: 123asd123asd
-              attr_no_delete:
-                type: boolean
-                example: true
-              attr_hidden_id:
-                type: string
-                example: default
-              desc:
-                type: string
-                example: Default
-              health:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Health'
-              num_new_alarms:
-                type: integer
-                example: 1
-    Health:
-      title: Health info on subsystems
-      type: object
-      properties:
-        subsystem:
-          type: string
-          example: www
-        status:
-          type: string
-          example: ok
-        num_user:
+          examples: [examples]
+        httpStatusCode:
           type: integer
-          example: 20
-        num_guest:
-          type: integer
-          example: 10
-        num_iot:
-          type: integer
-          example: 0
-        tx_bytes-r:
-          type: integer
-          example: 1024
-        rc_bytes-r:
-          type: integer
-          example: 1024
-        num_ap:
-          type: integer
-          example: 2
-        num_adopted:
-          type: integer
-          example: 0
-        num_disabled:
-          type: integer
-          example: 0
-        num_disconnected:
-          type: integer
-          example: 0
-        num_pending:
-          type: integer
-          example: 0
-        num_sw:
-          type: integer
-          example: 0
-        num_gw:
-          type: integer
-          example: 0
-    AdminStats:
-      title: Stats on admins for sites
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              is_super:
-                type: boolean
-              is_verified:
-                type: boolean
-              roles:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    site_id:
-                      type: string
-                    site_name:
-                      type: string
-                    site_desc:
-                      type: string
-                    permissions:
-                      type: array
-                      items:
-                        type: string
-                    role:
-                      type: string
-              super_roles:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    site_id:
-                      type: string
-                    site_name:
-                      type: string
-                    permissions:
-                      type: array
-                      items:
-                        type: string
-                    role:
-                      type: string
-              last_site_name:
-                type: string
-              ui_settings:
-                type: object
-                properties:
-                  neverCheckForUpdate:
-                    type: boolean
-                  statisticsPreferedBps:
-                    type: string
-                  topologyViewSettings:
-                    type: object
-                    properties:
-                      showWiredPorts:
-                        type: boolean
-                      isolated:
-                        type: boolean
-                      showWifiStandards:
-                        type: boolean
-                      showWifiExperience:
-                        type: boolean
-                      show5GClients:
-                        type: boolean
-                      showWiredClients:
-                        type: boolean
-                      offline:
-                        type: boolean
-                      showSSID:
-                        type: boolean
-                      showRadioChannel:
-                        type: boolean
-                      showStpPriority:
-                        type: boolean
-                      online:
-                        type: boolean
-                      showWiredSpeed:
-                        type: boolean
-                      managed_by_another_console:
-                        type: boolean
-                      pending_adoption:
-                        type: boolean
-                      showAllClients:
-                        type: boolean
-                      showAllDevices:
-                        type: boolean
-                      show2GClients:
-                        type: boolean
-                  statisticsPrefferedTZ:
-                    type: string
-                  preferredLanguage:
-                    type: string
-                  preferences:
-                    type: object
-                    properties:
-                      enableSidePanelTabs:
-                        type: boolean
-                      isUbbAlignmentToolModalClosed:
-                        type: boolean
-                      isTopologyUnknownSwitchNotificationDismissed:
-                        type: boolean
-                      isNextAiSecurityFirstSubmit:
-                        type: boolean
-                      enableNewUI:
-                        type: boolean
-                      dashboardHighlighted:
-                        type: boolean
-                      trafficAndFirewallRulesMode:
-                        type: string
-                      dismissWlanOverrides:
-                        type: boolean
-                      useBrowserTheme:
-                        type: boolean
-                      timeFormat:
-                        type: string
-                      clientsRoute:
-                        type: string
-                      isUlteModalClosed:
-                        type: boolean
-                      offlineClientTimeframe:
-                        type: integer
-                        format: int32
-                      isAppDark:
-                        type: boolean
-                      isEnhancedThreatUpdatesBannerHidden:
-                        type: boolean
-                      dashboardMinimized:
-                        type: boolean
-                      use24HourTime:
-                        type: boolean
-                      isTopologyClientThresholdEvaluated:
-                        type: boolean
-                  tables:
-                    type: object
-                    properties:
-                      unifiDeviceUnmanaged:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/threats:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      hotspot/payments:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/clientEvents:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      unifiDeviceConnect:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceProtect:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      ports:
-                        type: object
-                        properties:
-                          filters:
-                            type: object
-                            properties:
-                              poe:
-                                type: object
-                                properties:
-                                  poe_passive_24v:
-                                    type: boolean
-                                  poe+:
-                                    type: boolean
-                                  poe:
-                                    type: boolean
-                                  poe++:
-                                    type: boolean
-                                  poe_passthrough:
-                                    type: boolean
-                                  none:
-                                    type: boolean
-                              media:
-                                type: object
-                                properties:
-                                  2P5GE:
-                                    type: boolean
-                                  SFP28:
-                                    type: boolean
-                                  SFPPLUS:
-                                    type: boolean
-                                  40GE:
-                                    type: boolean
-                                  25GE:
-                                    type: boolean
-                                  100GE:
-                                    type: boolean
-                                  QSFP28:
-                                    type: boolean
-                                  10GE:
-                                    type: boolean
-                                  SFP:
-                                    type: boolean
-                                  GE:
-                                    type: boolean
-                                  FE:
-                                    type: boolean
-                              device:
-                                type: object
-                                properties:
-                                  device:
-                                    type: string
-                              status:
-                                type: object
-                                properties:
-                                  available:
-                                    type: boolean
-                                  in_use:
-                                    type: boolean
-                              network:
-                                type: object
-                                properties:
-                                  network:
-                                    type: string
-                      wifiConnectivity/eventGroups:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/systemCritical:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      client:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          columnSize:
-                            type: object
-                            properties:
-                              physicalName:
-                                type: integer
-                                format: int32
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          filters:
-                            type: object
-                            properties:
-                              clients_type:
-                                type: object
-                                properties:
-                                  local_dns_record:
-                                    type: boolean
-                                  guests:
-                                    type: boolean
-                                  fixed_ip_address:
-                                    type: boolean
-                                  users:
-                                    type: boolean
-                              connection_type:
-                                type: object
-                                properties:
-                                  wired:
-                                    type: boolean
-                                  na:
-                                    type: boolean
-                                  vpn:
-                                    type: boolean
-                                  ax:
-                                    type: boolean
-                                  teleport:
-                                    type: boolean
-                                  ng:
-                                    type: boolean
-                              configuration:
-                                type: object
-                                properties:
-                                  configured:
-                                    type: boolean
-                                  default:
-                                    type: boolean
-                              device:
-                                type: object
-                                properties:
-                                  device:
-                                    type: string
-                              status:
-                                type: object
-                                properties:
-                                  offline:
-                                    type: boolean
-                                  blocked:
-                                    type: boolean
-                                  active:
-                                    type: boolean
-                          isAscending:
-                            type: boolean
-                      unifiDeviceAccess:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/adminActivity:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      settings/portAndIpGroups:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      insights/wifiPerformanceAp:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                      logs/ap:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      hotspot/vouchers:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/updates:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      insights/wifiPerformanceClient:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                      logs/triggers:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                      insights/wifiScanner:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDevicePorts:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceNetwork:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDevice:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          custom:
-                            type: object
-                            properties:
-                              groupByApplication:
-                                type: boolean
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      hotspot/guests:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      device:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceTalk:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      settings/networks/ipLeases:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                          isAscending:
-                            type: boolean
-                  networksViewSettings:
-                    type: object
-                    properties:
-                      showVpnClientTable:
-                        type: boolean
-                      showVpnServerTable:
-                        type: boolean
-                      showVpnS2STable:
-                        type: boolean
-                      showNetworkTable:
-                        type: boolean
-                      showInternetTable:
-                        type: boolean
-                      showWifiTable:
-                        type: boolean
-                      showPolicyBasedRoutingTable:
-                        type: boolean
-                      showPortForwardingTable:
-                        type: boolean
-                  statisticsPreferBps:
-                    type: string
-                  version:
-                    type: string
-                  floorplan:
-                    type: object
-                    properties:
-                      app:
-                        type: string
-                      coverage:
-                        type: object
-                        properties:
-                          wifi:
-                            type: string
-                          legend:
-                            type: boolean
-                          palette:
-                            type: string
-                      pointer:
-                        type: string
-                      topology:
-                        type: object
-                        properties:
-                          fit:
-                            type: string
-                            format: nullable
-                          expand:
-                            type: boolean
-                          squashed:
-                            type: boolean
-                          paginate:
-                            type: boolean
-                      project:
-                        type: object
-                        properties:
-                          unit:
-                            type: string
-                          tier:
-                            type: string
-                          store:
-                            type: string
-                      visual:
-                        type: object
-                        properties:
-                          stats:
-                            type: object
-                            properties:
-                              attributes:
-                                type: array
-                                items:
-                                  type: string
-                              opacity:
-                                type: integer
-                                format: int32
-                          scale:
-                            type: object
-                            properties:
-                              device:
-                                type: integer
-                                format: int32
-                          opacity:
-                            type: object
-                            properties:
-                              wall:
-                                type: integer
-                                format: int32
-                      version:
-                        type: string
-                      detections:
-                        type: object
-                        properties:
-                          show:
-                            type: string
-                          enabledTypes:
-                            type: object
-                            properties:
-                              person:
-                                type: boolean
-                              vehicle:
-                                type: boolean
-              ubic_name:
-                type: string
-              is_owner:
-                type: boolean
-              requires_new_password:
-                type: boolean
-              last_name:
-                type: string
-              push_alert_enabled:
-                type: boolean
-              uid:
-                type: string
-              avatar_url:
-                type: string
-              email_alert_enabled:
-                type: boolean
-              name:
-                type: string
-              time_created:
-                type: integer
-                format: int32
-              ubic_uuid:
-                type: string
-              _id:
-                type: string
-              first_name:
-                type: string
-              email:
-                type: string
-    CountryCodes:
-      title: CountryCodeInfo
-      description: Country Codes
-      type: object
-      additionalProperties: false
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/CountryCode'
-    CountryCode:
-      title: Country Code
-      type: object
-      additionalProperties: false
-      properties:
-        code:
-          type: string
-          example: 840
-        name:
-          type: string
-          example: United States
-        key:
-          type: string
-          example: US
-    CurrentChannel:
-      title: Current Channel
-      description: Channels
-      type: object
-      additionalProperties: false
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
+          examples: [200]
         data:
           type: array
           items:
             properties:
-              code:
+              hardwareId:
                 type: string
-                example: 840
-              name:
+              id:
                 type: string
-                example: United States
-              key:
+              ipAddress:
                 type: string
-                example: US
-              channels_6e:
-                type: array
-                items:
-                  type: integer
-              channels_6e_320:
-                type: array
-                items:
-                  type: integer
-              channels_6e_160:
-                type: array
-                items:
-                  type: integer
-              channels_6e_40:
-                type: array
-                items:
-                  type: integer
-              channels_6e_80:
-                type: array
-                items:
-                  type: integer
-              channels_6e_indoor:
-                type: array
-                items:
-                  type: integer
-              channels_6e_outdoor:
-                type: array
-                items:
-                  type: integer
-              channels_6e_psc:
-                type: array
-                items:
-                  type: integer
-              channels_ad_1080:
-                type: array
-                items:
-                  type: integer
-              channels_ad_2160:
-                type: array
-                items:
-                  type: integer
-              channels_ad_4320:
-                type: array
-                items:
-                  type: integer
-              channels_ad_outdoor:
-                type: array
-                items:
-                  type: integer
-              channels_na:
-                type: array
-                items:
-                  type: integer
-              channels_na_160:
-                type: array
-                items:
-                  type: integer
-              channels_na_240:
-                type: array
-                items:
-                  type: integer
-              channels_na_40:
-                type: array
-                items:
-                  type: integer
-              channels_na_80:
-                type: array
-                items:
-                  type: integer
-              channels_na_dfs:
-                type: array
-                items:
-                  type: integer
-              channels_na_indoor:
-                type: array
-                items:
-                  type: integer
-              channels_na_outdoor:
-                type: array
-                items:
-                  type: integer
-              channels_ng:
-                type: array
-                items:
-                  type: integer
-              channels_ng_40:
-                type: array
-                items:
-                  type: integer
-              channels_ng_indoor:
-                type: array
-                items:
-                  type: integer
-              channels_ng_outdoor:
-                type: array
-                items:
-                  type: integer
-    SystemInfo:
-      title: System Info
-      description: System Information
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              timezone:
+              isBlocked:
                 type: string
-              autobackup:
-                type: boolean
-              build:
-                type: string
-              version:
-                type: string
-              previous_version:
-                type: string
-              data_retention_days:
-                type: integer
-                format: int32
-              data_retention_time_in_hours_for_5minutes_scale:
-                type: integer
-                format: int32
-              data_retention_time_in_hours_for_hourly_scale:
-                type: integer
-                format: int32
-              data_retention_time_in_hours_for_daily_scale:
-                type: integer
-                format: int32
-              data_retention_time_in_hours_for_monthly_scale:
-                type: integer
-                format: int32
-              data_retention_time_in_hours_for_others:
-                type: integer
-                format: int32
-              update_available:
-                type: boolean
-              update_downloaded:
-                type: boolean
-              live_chat:
-                type: string
-              store_enabled:
-                type: string
-              hostname:
-                type: string
-              name:
-                type: string
-              ip_addrs:
-                type: array
-                items:
-                  type: string
-              inform_port:
-                type: integer
-                format: int32
-              https_port:
-                type: integer
-                format: int32
-              portal_http_port:
-                type: integer
-                format: int32
-              override_inform_host:
-                type: boolean
-              image_maps_use_google_engine:
-                type: boolean
-              radius_disconnect_running:
-                type: boolean
-              facebook_wifi_registered:
-                type: boolean
-              sso_app_id:
-                type: string
-              sso_app_sec:
-                type: string
-              uptime:
-                type: integer
-                format: int32
-              anonymous_controller_id:
-                type: string
-              has_webrtc_support:
-                type: boolean
-              debug_setting_preference:
-                type: string
-              debug_mgmt:
-                type: string
-              debug_system:
-                type: string
-              debug_device:
-                type: string
-              debug_sdn:
-                type: string
-              ubnt_device_type:
-                type: string
-              cloudkey_version:
-                type: string
-              cloudkey_storage_limitations:
-                type: boolean
-              cloudkey_sdcard_mounted:
-                type: boolean
-              cloudkey_using_fake_system_properties:
-                type: boolean
-              lts_device_count:
-                type: integer
-                format: int32
-              unsupported_device_count:
-                type: integer
-                format: int32
-              unsupported_device_list:
-                type: array
-                items:
-                  type: string
-              unifi_go_enabled:
-                type: boolean
-              default_site_device_auth_password_alert:
-                type: boolean
-              is_cloud_console:
-                type: boolean
-              console_display_version:
-                type: string
-    Event:
-      title: System Events
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              msg:
-                type: string
-              ap_model:
-                type: string
-              channel:
-                type: string
-              ap_displayName:
-                type: string
-              subsystem:
-                type: string
-              ssid:
-                type: string
-              ap:
-                type: string
-              radio:
-                type: string
-              ap_name:
-                type: string
-              time:
-                type: integer
-                format: int64
-              datetime:
+              lastConnectionStateChange:
                 type: string
                 format: date-time
-              site_id:
+              latestBackupTime:
                 type: string
-              _id:
-                type: string
-              user:
-                type: string
-              is_negative:
+                format: date-time
+              owner:
                 type: boolean
-              key:
+              registrationTime:
                 type: string
-              duration:
-                type: integer
-                format: int32
-              hostname:
-                type: string
-              bytes:
-                type: integer
-                format: int32
-              network:
-                type: string
-              ap_to:
-                type: string
-              channel_from:
-                type: string
-              radio_from:
-                type: string
-              ap_from:
-                type: string
-              radio_to:
-                type: string
-              channel_to:
-                type: string
-              sw_model:
-                type: string
-              sw_displayName:
-                type: string
-              sw:
-                type: string
-              sw_name:
-                type: string
-              version_to:
-                type: string
-              version_from:
-                type: string
-              port:
-                type: integer
-                format: int32
-              admin:
-                type: string
-              is_admin:
-                type: boolean
-    Device:
-      title: Device Information
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              required_version:
-                type: string
-              port_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    port_idx:
-                      type: integer
-                      format: int32
-                    media:
-                      type: string
-                    port_poe:
-                      type: boolean
-                    poe_caps:
-                      type: integer
-                      format: int32
-                    speed_caps:
-                      type: integer
-                      format: int32
-                    op_mode:
-                      type: string
-                    forward:
-                      type: string
-                    poe_mode:
-                      type: string
-                    autoneg:
-                      type: boolean
-                    dot1x_mode:
-                      type: string
-                    dot1x_status:
-                      type: string
-                    enable:
-                      type: boolean
-                    flowctrl_rx:
-                      type: boolean
-                    flowctrl_tx:
-                      type: boolean
-                    full_duplex:
-                      type: boolean
-                    is_uplink:
-                      type: boolean
-                    jumbo:
-                      type: boolean
-                    mac_table_count:
-                      type: integer
-                      format: int32
-                    poe_class:
-                      type: string
-                    poe_current:
-                      type: string
-                    poe_enable:
-                      type: boolean
-                    poe_good:
-                      type: boolean
-                    poe_power:
-                      type: string
-                    poe_voltage:
-                      type: string
-                    rx_broadcast:
-                      type: integer
-                      format: int32
-                    rx_bytes:
-                      type: integer
-                      format: int32
-                    rx_dropped:
-                      type: integer
-                      format: int32
-                    rx_errors:
-                      type: integer
-                      format: int32
-                    rx_multicast:
-                      type: integer
-                      format: int32
-                    rx_packets:
-                      type: integer
-                      format: int32
-                    satisfaction:
-                      type: integer
-                      format: int32
-                    satisfaction_reason:
-                      type: integer
-                      format: int32
-                    speed:
-                      type: integer
-                      format: int32
-                    stp_pathcost:
-                      type: integer
-                      format: int32
-                    stp_state:
-                      type: string
-                    tx_broadcast:
-                      type: integer
-                      format: int32
-                    tx_bytes:
-                      type: integer
-                      format: int32
-                    tx_dropped:
-                      type: integer
-                      format: int32
-                    tx_errors:
-                      type: integer
-                      format: int32
-                    tx_multicast:
-                      type: integer
-                      format: int32
-                    tx_packets:
-                      type: integer
-                      format: int32
-                    up:
-                      type: boolean
-                    tx_bytes-r:
-                      type: integer
-                      format: int32
-                    rx_bytes-r:
-                      type: integer
-                      format: int32
-                    bytes-r:
-                      type: integer
-                      format: int32
-                    setting_preference:
-                      type: string
-                    port_security_enabled:
-                      type: boolean
-                    stormctrl_ucast_rate:
-                      type: integer
-                      format: int32
-                    stormctrl_bcast_rate:
-                      type: integer
-                      format: int32
-                    stormctrl_mcast_enabled:
-                      type: boolean
-                    stormctrl_ucast_enabled:
-                      type: boolean
-                    egress_rate_limit_kbps_enabled:
-                      type: boolean
-                    isolation:
-                      type: boolean
-                    tagged_vlan_mgmt:
-                      type: string
-                    stormctrl_bcast_enabled:
-                      type: boolean
-                    voice_networkconf_id:
-                      type: string
-                    stp_port_mode:
-                      type: boolean
-                    port_keepalive_enabled:
-                      type: boolean
-                    stormctrl_mcast_rate:
-                      type: integer
-                      format: int32
-                    native_networkconf_id:
-                      type: string
-                    name:
-                      type: string
-                    port_security_mac_address:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                    lldpmed_enabled:
-                      type: boolean
-                    masked:
-                      type: boolean
-                    aggregated_by:
-                      type: boolean
-                    locating:
-                      type: boolean
-                    excluded_networkconf_ids:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                    sfp_compliance:
-                      type: string
-                    sfp_current:
-                      type: string
-                    sfp_found:
-                      type: boolean
-                    sfp_part:
-                      type: string
-                    sfp_rev:
-                      type: string
-                    sfp_rxfault:
-                      type: boolean
-                    sfp_rxpower:
-                      type: string
-                    sfp_serial:
-                      type: string
-                    sfp_temperature:
-                      type: string
-                    sfp_txfault:
-                      type: boolean
-                    sfp_txpower:
-                      type: string
-                    sfp_vendor:
-                      type: string
-                    sfp_voltage:
-                      type: string
-              license_state:
-                type: string
-              lcm_brightness_override:
-                type: boolean
+                format: date-time
               type:
                 type: string
-              board_rev:
-                type: integer
-                format: int32
-              setup_id:
-                type: string
-              hw_caps:
-                type: integer
-                format: int32
-              reboot_duration:
-                type: integer
-                format: int32
-              snmp_contact:
-                type: string
-              config_network:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  bonding_enabled:
-                    type: boolean
-              syslog_key:
-                type: string
-              model:
-                type: string
-              slimcfg_caps:
-                type: integer
-                format: int32
-              manufacturer_id:
-                type: integer
-                format: int32
-              sysid:
-                type: integer
-                format: int32
-              lcm_orientation_override:
-                type: integer
-                format: int32
-              ip:
-                type: string
-              fw2_caps:
-                type: integer
-                format: int32
-              jumboframe_enabled:
-                type: boolean
-              last_connection_network_name:
-                type: string
-              shortname:
-                type: string
-              version:
-                type: string
-              adoption_completed:
-                type: boolean
-              unsupported_reason:
-                type: integer
-                format: int32
-              anon_id:
-                type: string
-              stp_version:
-                type: string
-              last_connection_network_id:
-                type: string
-              site_id:
-                type: string
-              adopted_at:
-                type: integer
-                format: int32
-              name:
-                type: string
-              fw_caps:
-                type: integer
-                format: int32
-              lcm_brightness:
-                type: integer
-                format: int32
-              _id:
-                type: string
-              internet:
-                type: boolean
-              mgmt_network_id:
-                type: string
-              gateway_mac:
-                type: string
-              stp_priority:
-                type: string
-              lcm_night_mode_begins:
-                type: string
-              two_phase_adopt:
-                type: boolean
-              port_overrides:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    setting_preference:
-                      type: string
-                    op_mode:
-                      type: string
-                    port_security_enabled:
-                      type: boolean
-                    poe_mode:
-                      type: string
-                    stormctrl_ucast_rate:
-                      type: integer
-                      format: int32
-                    forward:
-                      type: string
-                    stormctrl_bcast_rate:
-                      type: integer
-                      format: int32
-                    stormctrl_mcast_enabled:
-                      type: boolean
-                    stormctrl_ucast_enabled:
-                      type: boolean
-                    egress_rate_limit_kbps_enabled:
-                      type: boolean
-                    isolation:
-                      type: boolean
-                    tagged_vlan_mgmt:
-                      type: string
-                    port_idx:
-                      type: integer
-                      format: int32
-                    stormctrl_bcast_enabled:
-                      type: boolean
-                    voice_networkconf_id:
-                      type: string
-                    stp_port_mode:
-                      type: boolean
-                    port_keepalive_enabled:
-                      type: boolean
-                    stormctrl_mcast_rate:
-                      type: integer
-                      format: int32
-                    native_networkconf_id:
-                      type: string
-                    name:
-                      type: string
-                    port_security_mac_address:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                    autoneg:
-                      type: boolean
-                    lldpmed_enabled:
-                      type: boolean
-                    excluded_networkconf_ids:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-              connected_at:
-                type: integer
-                format: int32
-              inform_ip:
-                type: string
-              cfgversion:
-                type: string
-              mac:
-                type: string
-              provisioned_at:
-                type: integer
-                format: int32
-              inform_url:
-                type: string
-              upgrade_duration:
-                type: integer
-                format: int32
-              ethernet_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    num_port:
-                      type: integer
-                      format: int32
-                    name:
-                      type: string
-                    mac:
-                      type: string
-              flowctrl_enabled:
-                type: boolean
-              unsupported:
-                type: boolean
-              ble_caps:
-                type: integer
-                format: int32
-              sys_error_caps:
-                type: integer
-                format: int32
-              dot1x_portctrl_enabled:
-                type: boolean
-              ipv6:
-                type: array
-                items:
-                  type: string
-              last_uplink:
-                type: object
-                properties:
-                  port_idx:
-                    type: integer
-                    format: int32
-                  uplink_mac:
-                    type: string
-                  type:
-                    type: string
-              ether_lighting:
-                type: object
-                properties:
-                  mode:
-                    type: string
-                  brightness:
-                    type: integer
-                    format: int32
-                  behavior:
-                    type: string
-              disconnected_at:
-                type: integer
-                format: int32
-              architecture:
-                type: string
-              x_aes_gcm:
-                type: boolean
-              has_fan:
-                type: boolean
-              model_incompatible:
-                type: boolean
-              x_authkey:
-                type: string
-              x_ssh_hostkey_fingerprint:
-                type: string
-              satisfaction:
-                type: integer
-                format: int32
-              model_in_eol:
-                type: boolean
-              anomalies:
-                type: integer
-                format: int32
-              has_temperature:
-                type: boolean
-              switch_caps:
-                type: object
-                properties:
-                  feature_caps:
-                    type: integer
-                    format: int32
-                  max_custom_mac_acls:
-                    type: integer
-                    format: int32
-                  max_qos_profiles:
-                    type: integer
-                    format: int32
-                  max_reserved_routes:
-                    type: integer
-                    format: int32
-                  max_mirror_sessions:
-                    type: integer
-                    format: int32
-                  max_aggregate_sessions:
-                    type: integer
-                    format: int32
-                  etherlight_caps:
-                    type: integer
-                    format: int32
-                  max_custom_ip_acls:
-                    type: integer
-                    format: int32
-                  max_global_acls:
-                    type: integer
-                    format: int32
-                  vlan_caps:
-                    type: integer
-                    format: int32
-                  max_vlan_count:
-                    type: integer
-                    format: int32
-                  max_static_routes:
-                    type: integer
-                    format: int32
-                  max_class_maps:
-                    type: integer
-                    format: int32
-                  max_l3_intf:
-                    type: integer
-                    format: int32
-              adopted_by_client:
-                type: string
-              snmp_location:
-                type: string
-              model_in_lts:
-                type: boolean
-              kernel_version:
-                type: string
-              serial:
-                type: string
-              power_source_ctrl_enabled:
-                type: boolean
-              lcm_night_mode_ends:
-                type: string
-              adopted:
-                type: boolean
-              hash_id:
-                type: string
-              device_id:
-                type: string
-              uplink:
-                type: object
-                properties:
-                  ip:
-                    type: string
-                  mac:
-                    type: string
-                  name:
-                    type: string
-                  netmask:
-                    type: string
-                  num_port:
-                    type: integer
-                    format: int32
-                  rx_bytes:
-                    type: integer
-                    format: int64
-                  rx_dropped:
-                    type: integer
-                    format: int32
-                  rx_errors:
-                    type: integer
-                    format: int32
-                  rx_multicast:
-                    type: integer
-                    format: int32
-                  rx_packets:
-                    type: integer
-                    format: int64
-                  tx_bytes:
-                    type: integer
-                    format: int64
-                  tx_dropped:
-                    type: integer
-                    format: int32
-                  tx_errors:
-                    type: integer
-                    format: int32
-                  tx_packets:
-                    type: integer
-                    format: int64
-                  port_idx:
-                    type: integer
-                    format: int32
-                  media:
-                    type: string
-                  full_duplex:
-                    type: boolean
-                  speed:
-                    type: integer
-                    format: int32
-                  max_speed:
-                    type: integer
-                    format: int32
-                  type:
-                    type: string
-                  tx_bytes-r:
-                    type: number
-                  rx_bytes-r:
-                    type: number
-                  uplink_source:
-                    type: string
-              state:
-                type: integer
-                format: int32
-              start_disconnected_millis:
-                type: integer
-                format: int64
-              start_connected_millis:
-                type: integer
-                format: int64
-              last_seen:
-                type: integer
-                format: int32
-              next_interval:
-                type: integer
-                format: int32
-              disconnection_reason:
-                type: string
-              credential_caps:
-                type: integer
-                format: int32
-              default:
-                type: boolean
-              discovered_via:
-                type: string
-              adopt_ip:
-                type: string
-              adopt_url:
-                type: string
-              x_adopt_username:
-                type: string
-              x_adopt_password:
-                type: string
-              adopt_state:
-                type: integer
-                format: int32
-              adopt_tries:
-                type: integer
-                format: int32
-              min_inform_interval_seconds:
-                type: integer
-                format: int32
-              upgradable:
-                type: boolean
-              adoptable_when_upgraded:
-                type: boolean
-              rollupgrade:
-                type: boolean
-              known_cfgversion:
-                type: string
-              uptime:
-                type: integer
-                format: int32
-              _uptime:
-                type: integer
-                format: int32
-              locating:
-                type: boolean
-              prev_non_busy_state:
-                type: integer
-                format: int32
-              connect_request_ip:
-                type: string
-              connect_request_port:
-                type: string
-              sys_stats:
-                type: object
-                properties:
-                  loadavg_1:
-                    type: string
-                  loadavg_15:
-                    type: string
-                  loadavg_5:
-                    type: string
-                  mem_buffer:
-                    type: integer
-                    format: int32
-                  mem_total:
-                    type: integer
-                    format: int32
-                  mem_used:
-                    type: integer
-                    format: int32
-              system-stats:
-                type: object
-                properties:
-                  cpu:
-                    type: string
-                  mem:
-                    type: string
-                  uptime:
-                    type: string
-              ssh_session_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              lldp_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    chassis_id:
-                      type: string
-                    is_wired:
-                      type: boolean
-                    local_port_idx:
-                      type: integer
-                      format: int32
-                    local_port_name:
-                      type: string
-                    port_id:
-                      type: string
-              displayable_version:
-                type: string
-              connection_network_id:
-                type: string
-              connection_network_name:
-                type: string
-              startup_timestamp:
-                type: integer
-                format: int32
-              is_access_point:
-                type: boolean
-              safe_for_autoupgrade:
-                type: boolean
-              general_temperature:
-                type: integer
-                format: int32
-              overheating:
-                type: boolean
-              total_max_power:
-                type: integer
-                format: int32
-              downlink_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    mac:
-                      type: string
-                    port_idx:
-                      type: integer
-                      format: int32
-                    speed:
-                      type: integer
-                      format: int32
-                    full_duplex:
-                      type: boolean
-              uplink_depth:
-                type: integer
-                format: int32
-              downlink_lldp_macs:
-                type: array
-                items:
-                  type: string
-              dhcp_server_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              total_used_power:
-                type: number
-              detailed_states:
-                type: object
-                properties:
-                  device_near_power_limit:
-                    type: boolean
-              stat:
-                type: object
-                properties:
-                  sw:
-                    type: object
-                    properties:
-                      site_id:
-                        type: string
-                      o:
-                        type: string
-                      oid:
-                        type: string
-                      sw:
-                        type: string
-                      time:
-                        type: integer
-                        format: int64
-                      datetime:
-                        type: string
-                        format: date-time
-                      rx_packets:
-                        type: integer
-                        format: int64
-                      rx_bytes:
-                        type: integer
-                        format: int64
-                      rx_errors:
-                        type: integer
-                        format: int32
-                      rx_dropped:
-                        type: integer
-                        format: int32
-                      rx_crypts:
-                        type: integer
-                        format: int32
-                      rx_frags:
-                        type: integer
-                        format: int32
-                      tx_packets:
-                        type: integer
-                        format: int64
-                      tx_bytes:
-                        type: integer
-                        format: int64
-                      tx_errors:
-                        type: integer
-                        format: int32
-                      tx_dropped:
-                        type: integer
-                        format: int32
-                      tx_retries:
-                        type: integer
-                        format: int32
-                      rx_multicast:
-                        type: integer
-                        format: int32
-                      rx_broadcast:
-                        type: integer
-                        format: int32
-                      tx_multicast:
-                        type: integer
-                        format: int32
-                      tx_broadcast:
-                        type: integer
-                        format: int32
-                      bytes:
-                        type: integer
-                        format: int64
-                      duration:
-                        type: integer
-                        format: int32
-                      port_4-tx_packets:
-                        type: integer
-                        format: int32
-                      port_4-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_4-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_4-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_6-rx_packets:
-                        type: integer
-                        format: int32
-                      port_6-rx_bytes:
-                        type: integer
-                        format: int32
-                      port_6-tx_packets:
-                        type: integer
-                        format: int32
-                      port_6-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_6-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_6-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_6-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_7-rx_packets:
-                        type: integer
-                        format: int64
-                      port_7-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_7-tx_packets:
-                        type: integer
-                        format: int64
-                      port_7-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_7-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_7-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_7-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_7-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_8-rx_packets:
-                        type: integer
-                        format: int32
-                      port_8-rx_bytes:
-                        type: integer
-                        format: int32
-                      port_8-tx_packets:
-                        type: integer
-                        format: int32
-                      port_8-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_8-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_8-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_9-rx_packets:
-                        type: integer
-                        format: int32
-                      port_9-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_9-tx_packets:
-                        type: integer
-                        format: int32
-                      port_9-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_9-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_9-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_9-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_9-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_12-rx_packets:
-                        type: integer
-                        format: int64
-                      port_12-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_12-tx_packets:
-                        type: integer
-                        format: int64
-                      port_12-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_12-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_12-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_12-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_12-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_13-rx_packets:
-                        type: integer
-                        format: int32
-                      port_13-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_13-tx_packets:
-                        type: integer
-                        format: int32
-                      port_13-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_13-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_13-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_13-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_13-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_15-rx_packets:
-                        type: integer
-                        format: int32
-                      port_15-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_15-tx_packets:
-                        type: integer
-                        format: int32
-                      port_15-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_15-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_15-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_15-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_15-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_16-rx_packets:
-                        type: integer
-                        format: int32
-                      port_16-rx_bytes:
-                        type: integer
-                        format: int32
-                      port_16-tx_packets:
-                        type: integer
-                        format: int32
-                      port_16-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_16-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_16-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_16-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_17-rx_packets:
-                        type: integer
-                        format: int64
-                      port_17-rx_bytes:
-                        type: integer
-                        format: int64
-                      port_17-tx_packets:
-                        type: integer
-                        format: int32
-                      port_17-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_17-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_17-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_17-tx_broadcast:
-                        type: integer
-                        format: int32
-                      port_4-rx_packets:
-                        type: integer
-                        format: int32
-                      port_4-rx_bytes:
-                        type: integer
-                        format: int32
-                      port_4-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_6-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_17-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_8-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_4-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_16-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_8-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_11-rx_packets:
-                        type: integer
-                        format: int32
-                      port_11-rx_bytes:
-                        type: integer
-                        format: int32
-                      port_11-tx_packets:
-                        type: integer
-                        format: int32
-                      port_11-tx_bytes:
-                        type: integer
-                        format: int64
-                      port_11-rx_multicast:
-                        type: integer
-                        format: int32
-                      port_11-rx_broadcast:
-                        type: integer
-                        format: int32
-                      port_11-tx_multicast:
-                        type: integer
-                        format: int32
-                      port_11-tx_broadcast:
-                        type: integer
-                        format: int32
-              tx_bytes:
-                type: integer
-                format: int64
-              rx_bytes:
-                type: integer
-                format: int64
-              bytes:
-                type: integer
-                format: int64
-              num_sta:
-                type: integer
-                format: int32
-              user-num_sta:
-                type: integer
-                format: int32
-              guest-num_sta:
-                type: integer
-                format: int32
-              x_has_ssh_hostkey:
-                type: boolean
-              has_speaker:
-                type: boolean
-              mesh_sta_vap_enabled:
-                type: boolean
-              outdoor_mode_override:
-                type: string
-              support_wifi6e:
-                type: boolean
-              led_override_color:
-                type: string
-              scan_radio_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              x_vwirekey:
-                type: string
-              supports_fingerprint_ml:
-                type: boolean
-              country_code:
-                type: integer
-                format: int32
-              wlangroup_id_na:
-                type: string
-              countrycode_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              antenna_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    wifi1_gain:
-                      type: integer
-                      format: int32
-                    default:
-                      type: boolean
-                    name:
-                      type: string
-                    wifi2_gain:
-                      type: integer
-                      format: int32
-                    id:
-                      type: integer
-                      format: int32
-                    wifi0_gain:
-                      type: integer
-                      format: int32
-              wifi_caps:
-                type: integer
-                format: int32
-              guid:
-                type: string
-              wlangroup_id_ng:
-                type: string
-              atf_enabled:
-                type: boolean
-              radio_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    antenna_gain:
-                      type: integer
-                      format: int32
-                    builtin_antenna:
-                      type: boolean
-                    vwire_enabled:
-                      type: boolean
-                    is_11be:
-                      type: boolean
-                    channel:
-                      type: string
-                    max_txpower:
-                      type: integer
-                      format: int32
-                    channel_optimization_enabled:
-                      type: boolean
-                    min_rssi_enabled:
-                      type: boolean
-                    builtin_ant_gain:
-                      type: integer
-                      format: int32
-                    is_11ac:
-                      type: boolean
-                    ht:
-                      type: integer
-                      format: int32
-                    radio:
-                      type: string
-                    nss:
-                      type: integer
-                      format: int32
-                    tx_power_mode:
-                      type: string
-                    is_11ax:
-                      type: boolean
-                    name:
-                      type: string
-                    min_txpower:
-                      type: integer
-                      format: int32
-                    radio_caps:
-                      type: integer
-                      format: int32
-                    antenna_id:
-                      type: integer
-                      format: int32
-                    radio_caps2:
-                      type: integer
-                      format: int32
-                    current_antenna_gain:
-                      type: integer
-                      format: int32
-                    has_eht240:
-                      type: boolean
-                    has_dfs:
-                      type: boolean
-                    has_ht160:
-                      type: boolean
-                    has_fccdfs:
-                      type: boolean
-                    has_eht320:
-                      type: boolean
-              led_override:
-                type: string
-              wifi_caps2:
-                type: integer
-                format: int32
-              has_eth1:
-                type: boolean
-              vwire_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              fixed_ap_available:
-                type: boolean
-              led_override_color_brightness:
-                type: integer
-                format: int32
-              scanning:
-                type: boolean
-              spectrum_scanning:
-                type: boolean
-              meshv3_peer_mac:
-                type: string
-              element_peer_mac:
-                type: string
-              guest_kicks:
-                type: integer
-                format: int32
-              guest_token:
-                type: string
-              hide_ch_width:
-                type: string
-              isolated:
-                type: boolean
-              radio_table_stats:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    last_channel:
-                      type: integer
-                      format: int32
-                    radio:
-                      type: string
-                    ast_txto:
-                      type: string
-                      format: nullable
-                    ast_cst:
-                      type: string
-                      format: nullable
-                    ast_be_xmit:
-                      type: string
-                      format: nullable
-                    cu_total:
-                      type: integer
-                      format: int32
-                    cu_self_rx:
-                      type: integer
-                      format: int32
-                    cu_self_tx:
-                      type: integer
-                      format: int32
-                    gain:
-                      type: integer
-                      format: int32
-                    satisfaction:
-                      type: integer
-                      format: int32
-                    state:
-                      type: string
-                    channel:
-                      type: integer
-                      format: int32
-                    extchannel:
-                      type: integer
-                      format: int32
-                    tx_power:
-                      type: integer
-                      format: int32
-                    tx_packets:
-                      type: integer
-                      format: int32
-                    tx_retries:
-                      type: integer
-                      format: int32
-                    num_sta:
-                      type: integer
-                      format: int32
-                    guest-num_sta:
-                      type: integer
-                      format: int32
-                    user-num_sta:
-                      type: integer
-                      format: int32
-              vap_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    avg_client_signal:
-                      type: integer
-                      format: int32
-                    bssid:
-                      type: string
-                    bw:
-                      type: integer
-                      format: int32
-                    ccq:
-                      type: integer
-                      format: int32
-                    channel:
-                      type: integer
-                      format: int32
-                    essid:
-                      type: string
-                    extchannel:
-                      type: integer
-                      format: int32
-                    id:
-                      type: string
-                    mac_filter_rejections:
-                      type: integer
-                      format: int32
-                    name:
-                      type: string
-                    num_sta:
-                      type: integer
-                      format: int32
-                    radio:
-                      type: string
-                    radio_name:
-                      type: string
-                    rx_bytes:
-                      type: integer
-                      format: int32
-                    rx_crypts:
-                      type: integer
-                      format: int32
-                    rx_dropped:
-                      type: integer
-                      format: int32
-                    rx_errors:
-                      type: integer
-                      format: int32
-                    rx_frags:
-                      type: integer
-                      format: int32
-                    rx_nwids:
-                      type: integer
-                      format: int32
-                    rx_packets:
-                      type: integer
-                      format: int32
-                    rx_tcp_stats:
-                      type: object
-                      properties:
-                        goodbytes:
-                          type: integer
-                          format: int32
-                        lat_avg:
-                          type: integer
-                          format: int32
-                        lat_max:
-                          type: integer
-                          format: int32
-                        lat_min:
-                          type: integer
-                          format: int32
-                        lat_samples:
-                          type: integer
-                          format: int32
-                        lat_sum:
-                          type: integer
-                          format: int32
-                        retries:
-                          type: integer
-                          format: int32
-                        stalls:
-                          type: integer
-                          format: int32
-                    satisfaction:
-                      type: integer
-                      format: int32
-                    state:
-                      type: string
-                    tx_bytes:
-                      type: integer
-                      format: int32
-                    tx_combined_retries:
-                      type: integer
-                      format: int32
-                    tx_data_mpdu_bytes:
-                      type: integer
-                      format: int32
-                    tx_dropped:
-                      type: integer
-                      format: int32
-                    tx_errors:
-                      type: integer
-                      format: int32
-                    tx_packets:
-                      type: integer
-                      format: int32
-                    tx_power:
-                      type: integer
-                      format: int32
-                    tx_retries:
-                      type: integer
-                      format: int32
-                    tx_rts_retries:
-                      type: integer
-                      format: int32
-                    tx_success:
-                      type: integer
-                      format: int32
-                    tx_tcp_stats:
-                      type: object
-                      properties:
-                        goodbytes:
-                          type: integer
-                          format: int32
-                        lat_avg:
-                          type: integer
-                          format: int32
-                        lat_max:
-                          type: integer
-                          format: int32
-                        lat_min:
-                          type: integer
-                          format: int32
-                        lat_samples:
-                          type: integer
-                          format: int32
-                        lat_sum:
-                          type: integer
-                          format: int32
-                        retries:
-                          type: integer
-                          format: int32
-                        stalls:
-                          type: integer
-                          format: int32
-                    tx_total:
-                      type: integer
-                      format: int32
-                    up:
-                      type: boolean
-                    usage:
-                      type: string
-                    wifi_tx_attempts:
-                      type: integer
-                      format: int32
-                    wifi_tx_dropped:
-                      type: integer
-                      format: int32
-                    t:
-                      type: string
-                    wlanconf_id:
-                      type: string
-                    is_guest:
-                      type: boolean
-                    is_wep:
-                      type: boolean
-                    ap_mac:
-                      type: string
-                    map_id:
-                      type: string
-                      format: nullable
-                    site_id:
-                      type: string
-                    wifi_tx_latency_mov:
-                      type: object
-                      properties:
-                        avg:
-                          type: integer
-                          format: int32
-                        max:
-                          type: integer
-                          format: int32
-                        min:
-                          type: integer
-                          format: int32
-                        total:
-                          type: integer
-                          format: int32
-                        total_count:
-                          type: integer
-                          format: int32
-              vwire_vap_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    state:
-                      type: string
-                    radio:
-                      type: string
-                    radio_name:
-                      type: string
-                    bssid:
-                      type: string
-              bytes-d:
-                type: integer
-                format: int32
-              tx_bytes-d:
-                type: integer
-                format: int32
-              rx_bytes-d:
-                type: integer
-                format: int32
-              bytes-r:
-                type: number
-              vwireEnabled:
-                type: boolean
-              uplink_table:
-                type: array
-                items:
-                  type: object
-                  properties:
-              user-wlan-num_sta:
-                type: integer
-                format: int32
-              guest-wlan-num_sta:
-                type: integer
-                format: int32
-              port_stats:
-                type: array
-                items:
-                  type: string
-              uplink_bssid:
-                type: string
-    DeviceBasic:
-      title: Basic Device Info
+              reportedState:
+                $ref: '#/components/schemas/ReportedState'
+              userData:
+                $ref: '#/components/schemas/UserData'
+    HostId:
       type: object
       properties:
-        meta:
+        traceId:
+          type: string
+          examples: [a7dc15e0eb4527142d7823515b15f87d]
+        message:
+          type: string
+          examples: [examples]
+        httpStatusCode:
+          type: integer
+          examples: [200]
+        data:
           type: object
           properties:
-            rc:
+            hardwareId:
               type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              mac:
-                type: string
-              state:
-                type: integer
-                format: int32
-              adopted:
-                type: boolean
-              disabled:
-                type: boolean
-              type:
-                type: string
-              model:
-                type: string
-              in_gateway_mode:
-                type: boolean
-              name:
-                type: string
-    Authentication:
-      title: AuthenticatedUser
-      description: User properties
+            id:
+              type: string
+            ipAddress:
+              type: string
+            isBlocked:
+              type: string
+            lastConnectionStateChange:
+              type: string
+              format: date-time
+            latestBackupTime:
+              type: string
+              format: date-time
+            owner:
+              type: boolean
+            registrationTime:
+              type: string
+              format: date-time
+            type:
+              type: string
+            reportedState:
+              $ref: '#/components/schemas/ReportedState'
+            userData:
+              $ref: '#/components/schemas/UserData'
+    UserData:
       type: object
-      additionalProperties: false
       properties:
-        unique_id:
-          type: string
-        first_name:
-          type: string
-        last_name:
-          type: string
-        alias:
-          type: string
-        full_name:
-          type: string
-        email:
-          type: string
-        email_status:
-          type: string
-        email_is_null:
-          type: boolean
-        user_email:
-          type: string
-        phone:
-          type: string
-        avatar_relative_path:
-          type: string
-        avatar_rpath2:
-          type: string
-        status:
-          type: string
-        employee_number:
-          type: string
-        create_time:
-          type: integer
-        login_time:
-          type: integer
-        extras:
-          $ref: '#/components/schemas/Extras'
-        username:
-          type: string
-        local_account_exist:
-          type: boolean
-        password_revision:
-          type: integer
-        sso_account:
-          type: string
-        sso_uuid:
-          type: string
-        sso_username:
-          type: string
-        sso_picture:
-          type: string
-        uid_sso_id:
-          type: string
-        uid_sso_account:
-          type: string
-        uid_account_status:
-          type: string
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/Group'
-        roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-        permissions:
-          $ref: '#/components/schemas/Permissions'
-        scopes:
+        apps:
           type: array
           items:
             type: string
-        cloud_access_granted:
-          type: boolean
-        only_local_account:
-          type: boolean
-        update_time:
-          type: integer
-        avatar:
+        consoleGroupMembers:
+          type: array
+          items:
+            type: object
+            properties:
+              mac:
+                type: string
+              role:
+                type: string
+              roleAttributes:
+                type: object
+                properties:
+                  applications:
+                    type: object
+                    properties:
+                      access:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                      connect:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                      innerspace:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                      network:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                      protect:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                      talk:
+                        type: object
+                        properties:
+                          owned:
+                            type: boolean
+                          required:
+                            type: boolean
+                          supported:
+                            type: boolean
+                  candidateRoles:
+                    type: array
+                    items:
+                      type: string
+                  connectedState:
+                    type: string
+                  connectedStateLastChanged:
+                    type: string
+                    format: date-time
+              sysId:
+                type: integer
+                format: int32
+        controllers:
+          type: array
+          items:
+            type: string
+        email:
           type: string
-        nfc_token:
+        features:
+          type: object
+          properties:
+            deviceGroups:
+              type: boolean
+            floorplan:
+              type: object
+              properties:
+                canEdit:
+                  type: boolean
+                canView:
+                  type: boolean
+            manageApplications:
+              type: boolean
+            notifications:
+              type: boolean
+            pion:
+              type: boolean
+            webrtc:
+              type: object
+              properties:
+                iceRestart:
+                  type: boolean
+                mediaStreams:
+                  type: boolean
+                twoWayAudio:
+                  type: boolean
+        fullName:
           type: string
-        nfc_display_id:
+        localId:
           type: string
-        nfc_card_type:
-          type: string
-        nfc_card_status:
-          type: string
+        permissions:
+          type: object
+          properties:
+            network.management:
+              type: array
+              items:
+                type: string
+            protect.management:
+              type: array
+              items:
+                type: string
+            system.management.location:
+              type: array
+              items:
+                type: string
+            system.management.user:
+              type: array
+              items:
+                type: string
         role:
           type: string
         roleId:
           type: string
-        id:
+        status:
           type: string
-        isOwner:
-          type: boolean
-        isSuperAdmin:
-          type: boolean
-        isMember:
-          type: boolean
-        maskedEmail:
-          type: string
-        accessMask:
-          type: integer
-        permissionMask:
-          type: integer
-        deviceToken:
-          type: string
-        ssoAuth:
-          $ref: '#/components/schemas/Extras'
-      required:
-        - accessMask
-        - alias
-        - avatar
-        - avatar_relative_path
-        - avatar_rpath2
-        - cloud_access_granted
-        - create_time
-        - deviceToken
-        - email
-        - email_is_null
-        - email_status
-        - employee_number
-        - extras
-        - first_name
-        - full_name
-        - groups
-        - id
-        - isMember
-        - isOwner
-        - isSuperAdmin
-        - last_name
-        - local_account_exist
-        - login_time
-        - maskedEmail
-        - nfc_card_status
-        - nfc_card_type
-        - nfc_display_id
-        - nfc_token
-        - only_local_account
-        - password_revision
-        - permissionMask
-        - permissions
-        - phone
-        - role
-        - roleId
-        - roles
-        - scopes
-        - ssoAuth
-        - sso_account
-        - sso_picture
-        - sso_username
-        - sso_uuid
-        - status
-        - uid_account_status
-        - uid_sso_account
-        - uid_sso_id
-        - unique_id
-        - update_time
-        - user_email
-        - username
-    Extras:
-      title: Extras
-      description: Extra things on the user
-      type: object
-      additionalProperties: false
-    Group:
-      title: Group
-      description: What groups the user is in
-      type: object
-      additionalProperties: false
-      properties:
-        unique_id:
-          type: string
-        name:
-          type: string
-        up_id:
-          type: string
-        up_ids:
-          type: array
-          items: {}
-        system_name:
-          type: string
-        create_time:
-          type: string
-    Permissions:
-      title: Permissions
-      description: Permissions that the user has
-      type: object
-      additionalProperties: false
-      properties:
-        network.management:
-          type: array
-          items:
-            type: string
-        protect.management:
-          type: array
-          items:
-            type: string
-        system.management.location:
-          type: array
-          items:
-            type: string
-        system.management.user:
-          type: array
-          items:
-            type: string
-    Role:
-      title: Role
-      description: User roles
-      type: object
-      additionalProperties: false
-      properties:
-        unique_id:
-          type: string
-        name:
-          type: string
-        system_role:
-          type: boolean
-        system_key:
-          type: string
-        level:
-          type: integer
-        create_time:
-          type: string
-        update_time:
-          type: string
-        is_private:
-          type: boolean
-    Error:
-      title: ErrorResponse
-      description: Error response message
+
+    ReportedState:
       type: object
       properties:
-        code:
+        anonid:
           type: string
-        message:
-          type: string
-        level:
-          type: string
-    User:
-      title: UserInfo
-      description: Info on the currently login in user
-      type: object
-      additionalProperties: false
-      properties:
-        meta:
-          type: object
-          properties:
-            rc:
-              type: string
-              example: ok
-        data:
+        apps:
           type: array
           items:
             type: object
             properties:
-              admin_id:
+              controllerStatus:
                 type: string
-                example: 6489a6c9
-              avatar_url:
-                type: string
-                example: /proxy/users/avatar/73-d6-4c-b1aa
-              device_id:
-                type: string
-                example: 602000000063522F10:133098839
-              email:
-                type: string
-                example: example@email.com
-              email_alert_enabled:
-                type: boolean
-              email_alert_grouping_delay:
-                type: integer
-                format: int32
-                example: 60
-              email_alert_grouping_enabled:
-                type: boolean
-              first_name:
-                type: string
-                example: UniFi
-              html_email_enabled:
-                type: boolean
-              is_owner:
-                type: boolean
-              is_professional_installer:
-                type: boolean
-              is_super:
-                type: boolean
-              last_name:
-                type: string
-                example: User
-              last_site_name:
-                type: string
-                example: default
               name:
                 type: string
-                example: UniFi User
-              push_alert_enabled:
-                type: boolean
-              requires_new_password:
-                type: boolean
-              super_site_permissions:
-                type: array
-                items:
-                  type: object
-              ubic_name:
-                type: string
-                example: example@email.com
-              ubic_uuid:
-                type: string
-                example: 85f-95-4a-9b-c5b4a
-              ui_settings:
-                type: object
-                properties:
-                  neverCheckForUpdate:
-                    type: boolean
-                  statisticsPreferedBps:
-                    type: string
-                    example:
-                  topologyViewSettings:
-                    type: object
-                    properties:
-                      showWiredPorts:
-                        type: boolean
-                      isolated:
-                        type: boolean
-                      showWifiStandards:
-                        type: boolean
-                      showWifiExperience:
-                        type: boolean
-                      show5GClients:
-                        type: boolean
-                      showWiredClients:
-                        type: boolean
-                      offline:
-                        type: boolean
-                      showSSID:
-                        type: boolean
-                      showRadioChannel:
-                        type: boolean
-                      showStpPriority:
-                        type: boolean
-                      online:
-                        type: boolean
-                      showWiredSpeed:
-                        type: boolean
-                      managed_by_another_console:
-                        type: boolean
-                      pending_adoption:
-                        type: boolean
-                      showAllClients:
-                        type: boolean
-                      showAllDevices:
-                        type: boolean
-                      show2GClients:
-                        type: boolean
-                  statisticsPrefferedTZ:
-                    type: string
-                    example: SITE
-                  preferredLanguage:
-                    type: string
-                    example: en
-                  tables:
-                    type: object
-                    properties:
-                      unifiDeviceUnmanaged:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/threats:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      hotspot/payments:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: time
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/clientEvents:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      unifiDeviceConnect:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceProtect:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      ports:
-                        type: object
-                        properties:
-                          filters:
-                            type: object
-                            properties:
-                              poe:
-                                type: object
-                                properties:
-                                  poe_passive_24v:
-                                    type: boolean
-                                  poe+:
-                                    type: boolean
-                                  poe:
-                                    type: boolean
-                                  poe++:
-                                    type: boolean
-                                  poe_passthrough:
-                                    type: boolean
-                                  none:
-                                    type: boolean
-                              media:
-                                type: object
-                                properties:
-                                  2P5GE:
-                                    type: boolean
-                                  SFP28:
-                                    type: boolean
-                                  SFPPLUS:
-                                    type: boolean
-                                  40GE:
-                                    type: boolean
-                                  25GE:
-                                    type: boolean
-                                  100GE:
-                                    type: boolean
-                                  QSFP28:
-                                    type: boolean
-                                  10GE:
-                                    type: boolean
-                                  SFP:
-                                    type: boolean
-                                  GE:
-                                    type: boolean
-                                  FE:
-                                    type: boolean
-                              device:
-                                type: object
-                                properties:
-                                  device:
-                                    type: string
-                                    example:
-                              status:
-                                type: object
-                                properties:
-                                  available:
-                                    type: boolean
-                                  in_use:
-                                    type: boolean
-                              network:
-                                type: object
-                                properties:
-                                  network:
-                                    type: string
-                                    example:
-                      wifiConnectivity/eventGroups:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: start_time
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/systemCritical:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      client:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          columnSize:
-                            type: object
-                            properties:
-                              physicalName:
-                                type: integer
-                                format: int32
-                                example: 142
-                          sortBy:
-                            type: string
-                            example: dailyUsage
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          filters:
-                            type: object
-                            properties:
-                              clients_type:
-                                type: object
-                                properties:
-                                  local_dns_record:
-                                    type: boolean
-                                  guests:
-                                    type: boolean
-                                  fixed_ip_address:
-                                    type: boolean
-                                  users:
-                                    type: boolean
-                              connection_type:
-                                type: object
-                                properties:
-                                  wired:
-                                    type: boolean
-                                  na:
-                                    type: boolean
-                                  vpn:
-                                    type: boolean
-                                  ax:
-                                    type: boolean
-                                  teleport:
-                                    type: boolean
-                                  ng:
-                                    type: boolean
-                              configuration:
-                                type: object
-                                properties:
-                                  configured:
-                                    type: boolean
-                                  default:
-                                    type: boolean
-                              device:
-                                type: object
-                                properties:
-                                  device:
-                                    type: string
-                                    example:
-                              status:
-                                type: object
-                                properties:
-                                  offline:
-                                    type: boolean
-                                  blocked:
-                                    type: boolean
-                                  active:
-                                    type: boolean
-                          isAscending:
-                            type: boolean
-                      unifiDeviceAccess:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/adminActivity:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      settings/portAndIpGroups:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: port-ip-groups-name
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      insights/wifiPerformanceAp:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                      logs/ap:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      hotspot/vouchers:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: create_time
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      logs/updates:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      insights/wifiPerformanceClient:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                      logs/triggers:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          rowsPerPage:
-                            type: integer
-                            format: int32
-                            example: 25
-                      insights/wifiScanner:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: apCount
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDevicePorts:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: portSymbol
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceNetwork:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDevice:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          custom:
-                            type: object
-                            properties:
-                              groupByApplication:
-                                type: boolean
-                          sortBy:
-                            type: string
-                            example: application
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      hotspot/guests:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: start
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      device:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      unifiDeviceTalk:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: type
-                          initialColumns:
-                            type: array
-                            items:
-                              type: string
-                          isAscending:
-                            type: boolean
-                      settings/networks/ipLeases:
-                        type: object
-                        properties:
-                          columns:
-                            type: array
-                            items:
-                              type: string
-                          sortBy:
-                            type: string
-                            example: name
-                          isAscending:
-                            type: boolean
-                  preferences:
-                    type: object
-                    properties:
-                      enableSidePanelTabs:
-                        type: boolean
-                      isUbbAlignmentToolModalClosed:
-                        type: boolean
-                      isTopologyUnknownSwitchNotificationDismissed:
-                        type: boolean
-                      isNextAiSecurityFirstSubmit:
-                        type: boolean
-                      enableNewUI:
-                        type: boolean
-                      dashboardHighlighted:
-                        type: boolean
-                      trafficAndFirewallRulesMode:
-                        type: string
-                        example: SIMPLE
-                      dismissWlanOverrides:
-                        type: boolean
-                      useBrowserTheme:
-                        type: boolean
-                      timeFormat:
-                        type: string
-                        example: H:mm
-                      clientsRoute:
-                        type: string
-                        example: online
-                      isUlteModalClosed:
-                        type: boolean
-                      offlineClientTimeframe:
-                        type: integer
-                        format: int32
-                        example: 24
-                      isAppDark:
-                        type: boolean
-                      isEnhancedThreatUpdatesBannerHidden:
-                        type: boolean
-                      dashboardMinimized:
-                        type: boolean
-                      use24HourTime:
-                        type: boolean
-                      isTopologyClientThresholdEvaluated:
-                        type: boolean
-                  networksViewSettings:
-                    type: object
-                    properties:
-                      showVpnClientTable:
-                        type: boolean
-                      showVpnServerTable:
-                        type: boolean
-                      showVpnS2STable:
-                        type: boolean
-                      showNetworkTable:
-                        type: boolean
-                      showInternetTable:
-                        type: boolean
-                      showWifiTable:
-                        type: boolean
-                      showPolicyBasedRoutingTable:
-                        type: boolean
-                      showPortForwardingTable:
-                        type: boolean
-                  statisticsPreferBps:
-                    type: string
-                    example:
-                  version:
-                    type: string
-                    example: 60310:13339:649a6c9
-                  floorplan:
-                    type: object
-                    properties:
-                      app:
-                        type: string
-                        example: network
-                      coverage:
-                        type: object
-                        properties:
-                          wifi:
-                            type: string
-                            example: high
-                          legend:
-                            type: boolean
-                          palette:
-                            type: string
-                            example: deadzone
-                      pointer:
-                        type: string
-                        example: default
-                      topology:
-                        type: object
-                        properties:
-                          fit:
-                            type: string
-                            format: nullable
-                          expand:
-                            type: boolean
-                          squashed:
-                            type: boolean
-                          paginate:
-                            type: boolean
-                      project:
-                        type: object
-                        properties:
-                          unit:
-                            type: string
-                            example: metric
-                          tier:
-                            type: string
-                            example: value
-                          store:
-                            type: string
-                            example: us
-                      visual:
-                        type: object
-                        properties:
-                          stats:
-                            type: object
-                            properties:
-                              attributes:
-                                type: array
-                                items:
-                                  type: object
-                              opacity:
-                                type: integer
-                                format: int32
-                                example: 1
-                          scale:
-                            type: object
-                            properties:
-                              device:
-                                type: integer
-                                format: int32
-                                example: 1
-                          opacity:
-                            type: object
-                            properties:
-                              wall:
-                                type: integer
-                                format: int32
-                                example: 1
-                      version:
-                        type: string
-                        example: v22
-                      detections:
-                        type: object
-                        properties:
-                          show:
-                            type: string
-                            example: smart
-                          enabledTypes:
-                            type: object
-                            properties:
-                              person:
-                                type: boolean
-                              vehicle:
-                                type: boolean
-              uid:
-                type: string
-                example: 13432015-4dce-455a-923b-ca4fds548ce3
-              last_login_timestamp:
+              port:
                 type: integer
                 format: int32
-                example: 0
-              last_site_id:
+              swaiVersion:
+                type: integer
+                format: int32
+              type:
                 type: string
-                example: 648b5a7f4152ffd040a
-              site_id:
+              version:
                 type: string
-                example: 648b5ad152ffd040a
-              site_name:
+        availableChannels:
+          type: array
+          items:
+            type: string
+        consolesOnSameLocalNetwork:
+          type: array
+          items:
+            type: object
+            properties:
+        controller_uuid:
+          type: string
+        controllers:
+          type: array
+          items:
+            type: object
+            properties:
+              abridged:
+                type: boolean
+              controllerStatus:
                 type: string
-                example: default
-              site_permissions:
+              initialDeviceListSynced:
+                type: boolean
+              installState:
+                type: string
+              isConfigured:
+                type: boolean
+              isInstalled:
+                type: boolean
+              isRunning:
+                type: boolean
+              name:
+                type: string
+              port:
+                type: integer
+                format: int32
+              releaseChannel:
+                type: string
+              required:
+                type: boolean
+              state:
+                type: string
+              status:
+                type: string
+              statusMessage:
+                type: string
+              swaiVersion:
+                type: integer
+                format: int32
+              type:
+                type: string
+              uiVersion:
+                type: string
+              unadoptedDevices:
                 type: array
                 items:
                   type: object
-              site_role:
+                  properties:
+              updatable:
+                type: boolean
+              updateAvailable:
                 type: string
+                format: nullable
+              version:
+                type: string
+              features:
+                type: object
+                properties:
+                  stackable:
+                    type: boolean
+              installable:
+                type: boolean
+              isGeofencingEnabled:
+                type: boolean
+              restorePercentage:
+                type: integer
+                format: int32
+        country:
+          type: integer
+          format: int32
+        deviceErrorCode:
+          type: string
+          format: nullable
+        deviceState:
+          type: string
+        deviceStateLastChanged:
+          type: integer
+          format: int32
+        directConnectDomain:
+          type: string
+        features:
+          type: object
+          properties:
+            cloud:
+              type: object
+              properties:
+                applicationEvents:
+                  type: boolean
+                applicationEventsHttp:
+                  type: boolean
+            cloudBackup:
+              type: boolean
+            deviceList:
+              type: object
+              properties:
+                autolinkDevices:
+                  type: boolean
+                partialUpdates:
+                  type: boolean
+                ucp4Events:
+                  type: boolean
+            directRemoteConnection:
+              type: boolean
+            hasGateway:
+              type: boolean
+            hasLCM:
+              type: boolean
+            hasLED:
+              type: boolean
+            infoApis:
+              type: object
+              properties:
+                firmwareUpdate:
+                  type: boolean
+            isAutomaticFailoverAvailable:
+              type: boolean
+            mfa:
+              type: boolean
+            notifications:
+              type: boolean
+            sharedTokens:
+              type: boolean
+            supportForm:
+              type: boolean
+            teleport:
+              type: boolean
+            teleportState:
+              type: string
+            uidService:
+              type: boolean
+        firmwareUpdate:
+          type: object
+          properties:
+            latestAvailableVersion:
+              type: string
+              format: nullable
+        hardware:
+          type: object
+          properties:
+            bom:
+              type: string
+            cpu.id:
+              type: string
+            debianCodename:
+              type: string
+            firmwareVersion:
+              type: string
+            hwrev:
+              type: integer
+              format: int32
+            mac:
+              type: string
+            name:
+              type: string
+            qrid:
+              type: string
+            reboot:
+              type: string
+            serialno:
+              type: string
+            shortname:
+              type: string
+            subtype:
+              type: string
+            sysid:
+              type: integer
+              format: int32
+            upgrade:
+              type: string
+            uuid:
+              type: string
+        host_type:
+          type: integer
+          format: int32
+        hostname:
+          type: string
+        internetIssues5min:
+          type: object
+          properties:
+            periods:
+              type: array
+              items:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                    format: int32
+        ip:
+          type: string
+        ipAddrs:
+          type: array
+          items:
+            type: string
+        isStacked:
+          type: boolean
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            long:
+              type: number
+            radius:
+              type: integer
+              format: int32
+            text:
+              type: string
+        mac:
+          type: string
+        mgmt_port:
+          type: integer
+          format: int32
+        name:
+          type: string
+        releaseChannel:
+          type: string
+        state:
+          type: string
+        timezone:
+          type: string
+        uidb:
+          type: object
+          properties:
+            guid:
+              type: string
+            id:
+              type: string
+            images:
+              type: object
+              properties:
+                default:
+                  type: string
+                nopadding:
+                  type: string
+                topology:
+                  type: string
+        unadoptedUnifiOSDevices:
+          type: array
+          items:
+            type: object
+            properties:
+        version:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        httpStatusCode:
+          type: integer
+        message:
+          type: string
+        traceId:
+          type: string
+  
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-API-KEY
+      in: header
