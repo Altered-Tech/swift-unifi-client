@@ -9,7 +9,7 @@ Basing this on the Unifi API Documentation provided on this site: [ubntwiki](htt
 There currently are no tests for the client. Still working through developing the client.
 
 ## Client
-Work has been slow as I constantly get 403 errors with the client when attempting to authenticate.
+Work has been slow as I constantly get 403 errors with the client when attempting to authenticate. Found out this is a protection call `X-Xss-Protection`. 
 After a few hours, I run the same code and I get a 200 success. Not sure the cause just yet but I hope it is something dumb I am doing. 
 When I try a curl of the same information, I get a 200 response even after getting a 403 from the swift client.  
 
