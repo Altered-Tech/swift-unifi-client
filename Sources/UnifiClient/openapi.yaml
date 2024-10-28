@@ -42,16 +42,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '429':
           description: Rate Limit Reached
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
           headers:
@@ -65,10 +74,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '502':
           description: Bad gateway
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
   /host/{id}:
@@ -105,16 +120,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '429':
           description: Rate Limit Reached
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
           headers:
@@ -128,10 +152,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
         '502':
           description: Bad gateway
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
 components:
