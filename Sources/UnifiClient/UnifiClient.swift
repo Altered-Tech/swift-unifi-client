@@ -38,6 +38,8 @@ public struct UnifiClient {
                 
             
             case .ok(let value):
+                print(try value.body.json)
+                print(try value.body.plainText)
                 return try value.body.json
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
