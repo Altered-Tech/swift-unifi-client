@@ -37,7 +37,7 @@ public struct UnifiClient {
         switch result {
                 
             case .ok(let value):
-                return try value.body.application_json_charset_utf_hyphen_8
+                return try value.body.json
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -53,8 +53,26 @@ public struct UnifiClient {
             case .undocumented(statusCode: let statusCode, _):
                 throw UnifiError.undocumented(statusCode: statusCode, message: nil)
             case .notFound(let error):
-                throw UnifiError.notFound(message: try error.body.json.message ?? "Not Found")
+                let responseBody: HTTPBody = try error.body.plainText
+                let message = await printHTTPBodyMessage(responseBody)
+                throw UnifiError.notFound(message: message)
         }
     }
     
+}
+
+func printHTTPBodyMessage(_ body: OpenAPIRuntime.HTTPBody) async -> String {
+    do {
+        // Collect up to a reasonable max size, e.g., 2 MB
+        let collectedBytes = try await Array(collecting: body, upTo: 2 * 1024 * 1024)
+        
+        // Convert the collected bytes to a string
+        if let message = String(bytes: collectedBytes, encoding: .utf8) {
+            return "HTTPBody message: \(message)"
+        } else {
+            return "Unable to decode HTTPBody message as UTF-8."
+        }
+    } catch {
+        return "Error collecting HTTPBody message: \(error)"
+    }
 }
