@@ -36,11 +36,8 @@ public struct UnifiClient {
         )
         switch result {
                 
-            
             case .ok(let value):
-                print(try value.body.json)
-                print(try value.body.plainText)
-                return try value.body.json
+                return try value.body.application_json_charset_utf_hyphen_8
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):

@@ -33,7 +33,7 @@ paths:
         '200':
           description: Successful operation
           content:
-            application/json;charset=utf-8:
+            application/json; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/Hosts'
         '401':
