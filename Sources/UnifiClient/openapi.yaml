@@ -33,12 +33,9 @@ paths:
         '200':
           description: Successful operation
           content:
-            application/json:
+            application/json;charset=utf-8:
               schema:
                 $ref: '#/components/schemas/Hosts'
-            text/plain:
-              schema:
-                type: string
         '401':
           description: Unauthorized access
           content:
