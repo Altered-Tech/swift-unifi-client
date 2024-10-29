@@ -11,9 +11,9 @@ info:
   termsOfService: http://swagger.io/terms/
   version: 0.0.1
 servers:
-  - url: https://api.ui.com/ea
+  - url: https://api.ui.com
 paths:
-  /host:
+  /ea/host:
     get:
       tags:
         - Host
@@ -86,7 +86,7 @@ paths:
             text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
-  /host/{id}:
+  /ea/host/{id}:
     get:
       tags:
         - Host

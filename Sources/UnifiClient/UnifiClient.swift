@@ -18,7 +18,7 @@ public struct UnifiClient {
         self.apiKey = apiKey
     }
     
-    public init(url: String = "https://api.ui.com/ea", apiKey: String, session: URLSession = URLSession(configuration: .default)) async throws {
+    public init(url: String = "https://api.ui.com", apiKey: String, session: URLSession = URLSession(configuration: .default)) async throws {
         let transportConfig = URLSessionTransport.Configuration(session: session)
         let transport = URLSessionTransport(configuration: transportConfig)
         self.init(
