@@ -192,15 +192,12 @@ components:
                 type: boolean
               lastConnectionStateChange:
                 type: string
-                format: date-time
               latestBackupTime:
                 type: string
-                format: date-time
               owner:
                 type: boolean
               registrationTime:
                 type: string
-                format: date-time
               type:
                 type: string
               reportedState:
@@ -232,15 +229,12 @@ components:
               type: string
             lastConnectionStateChange:
               type: string
-              format: date-time
             latestBackupTime:
               type: string
-              format: date-time
             owner:
               type: boolean
             registrationTime:
               type: string
-              format: date-time
             type:
               type: string
             reportedState:
@@ -331,7 +325,6 @@ components:
                     type: string
                   connectedStateLastChanged:
                     type: string
-                    format: date-time
               sysId:
                 type: integer
                 format: int32
