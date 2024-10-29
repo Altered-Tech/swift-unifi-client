@@ -13,7 +13,7 @@ info:
 servers:
   - url: https://api.ui.com
 paths:
-  /ea/host:
+  /ea/hosts:
     get:
       tags:
         - Host
@@ -86,7 +86,7 @@ paths:
             text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
-  /ea/host/{id}:
+  /ea/hosts/{id}:
     get:
       tags:
         - Host
