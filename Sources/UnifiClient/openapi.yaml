@@ -189,7 +189,7 @@ components:
               ipAddress:
                 type: string
               isBlocked:
-                type: string
+                type: boolean
               lastConnectionStateChange:
                 type: string
                 format: date-time
