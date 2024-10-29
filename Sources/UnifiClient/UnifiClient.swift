@@ -30,14 +30,14 @@ public struct UnifiClient {
         )
     }
     
-    public func getHosts() async throws -> Components.Schemas.Hosts {
+    public func getHosts() async throws -> Components.Schemas.Hosts.dataPayload? {
         let result = try await underlyingClient.listHosts(
             .init(headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey))
         )
         switch result {
                 
             case .ok(let value):
-                return try value.body.json
+                return try value.body.json.data
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
