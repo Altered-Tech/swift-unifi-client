@@ -36,6 +36,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hosts'
+            text/plain:
+              schema:
+                type: string
         '401':
           description: Unauthorized access
           content:
