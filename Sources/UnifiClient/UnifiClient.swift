@@ -52,27 +52,162 @@ public struct UnifiClient {
                 throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
             case .undocumented(statusCode: let statusCode, _):
                 throw UnifiError.undocumented(statusCode: statusCode, message: nil)
-            case .notFound(let error):
-                let responseBody: HTTPBody = try error.body.plainText
-                let message = await printHTTPBodyMessage(responseBody)
-                throw UnifiError.notFound(message: message)
         }
     }
     
+    public func getHost(id: String) async throws -> Components.Schemas.HostId.dataPayload? {
+        let result = try await underlyingClient.getHost(
+            .init(
+                path: .init(id: id),
+                headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
+            )
+        )
+        switch result {
+                
+            case .ok(let value):
+                return try value.body.json.data
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .notFound(let error):
+                throw UnifiError.notFound(message: try error.body.json.message ?? "Not Found")
+            case .tooManyRequests(let error):
+                throw UnifiError
+                    .tooManyRequests(
+                        message: try error.body.json.message ?? "Too Many Requests",
+                        retry: error.headers.Retry_hyphen_After ?? "Retry Value Not Found"
+                    )
+            case .internalServerError(let error):
+                throw UnifiError.internalServerError(message: try error.body.json.message ?? "Internal Server Error")
+            case .badGateway(let error):
+                throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+        }
+    }
+    // list sites
+    public func getSites() async throws -> Components.Schemas.Sites {
+        let response = try await underlyingClient.getSites(
+            headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
+        )
+        
+        switch response {
+                
+            case .ok(let result):
+                return try result.body.json
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .tooManyRequests(let error):
+                throw UnifiError
+                    .tooManyRequests(
+                        message: try error.body.json.message ?? "Too Many Requests",
+                        retry: error.headers.Retry_hyphen_After ?? "Retry Value Not Found"
+                    )
+            case .internalServerError(let error):
+                throw UnifiError.internalServerError(message: try error.body.json.message ?? "Internal Server Error")
+            case .badGateway(let error):
+                throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+        }
+    }
+    // list devices
+    public func getDevices() async throws -> Components.Schemas.Devices {
+        let response = try await underlyingClient.getDevices(
+            headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
+        )
+        
+        switch response {
+                
+            case .ok(let result):
+                return try result.body.json
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .tooManyRequests(let error):
+                throw UnifiError
+                    .tooManyRequests(
+                        message: try error.body.json.message ?? "Too Many Requests",
+                        retry: error.headers.Retry_hyphen_After ?? "Retry Value Not Found"
+                    )
+            case .internalServerError(let error):
+                throw UnifiError.internalServerError(message: try error.body.json.message ?? "Internal Server Error")
+            case .badGateway(let error):
+                throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+        }
+    }
+    // get isp metrics
+    public func getIspMetrics(type: Operations.getISPMetrics.Input.Path._typePayload, start: String? = nil, end: String? = nil, duration: String? = nil) async throws -> Components.Schemas.ISPMetric {
+        let response = try await underlyingClient.getISPMetrics(
+            path: .init(_type: type),
+            query: .init(beginTimeStamp: start, endTimeStamp: end, duration: duration),
+            headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
+        )
+        
+        switch response {
+                
+            case .ok(let result):
+                return try result.body.json
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .tooManyRequests(let error):
+                throw UnifiError
+                    .tooManyRequests(
+                        message: try error.body.json.message ?? "Too Many Requests",
+                        retry: error.headers.Retry_hyphen_After ?? "Retry Value Not Found"
+                    )
+            case .internalServerError(let error):
+                throw UnifiError.internalServerError(message: try error.body.json.message ?? "Internal Server Error")
+            case .badGateway(let error):
+                throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+        }
+    }
+    // query isp metrics
+    public func queryISPMetrics(type: Operations.queryISPMetrics.Input.Path._typePayload, sites: [QueryISPSite]) async throws -> Components.Schemas.ISPMetrics {
+        var siteBody: Components.Schemas.QueryISP.sitePayload = []
+        for site in sites {
+            siteBody.append(
+                        .init(
+                            beginTimestamp: site.begin,
+                            endTimestamp: site.end,
+                            hostId: site.hostId,
+                            siteId: site.siteId
+                        )
+                    )
+        }
+        let response = try await underlyingClient.queryISPMetrics(
+            path: .init(_type: type),
+            headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey),
+            body: .json(.init(site: .some(siteBody)))
+        )
+        
+        switch response {
+                
+            case .ok(let result):
+                return try result.body.json
+            case .unauthorized(let error):
+                throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
+            case .tooManyRequests(let error):
+                throw UnifiError
+                    .tooManyRequests(
+                        message: try error.body.json.message ?? "Too Many Requests",
+                        retry: error.headers.Retry_hyphen_After ?? "Retry Value Not Found"
+                    )
+            case .internalServerError(let error):
+                throw UnifiError.internalServerError(message: try error.body.json.message ?? "Internal Server Error")
+            case .badGateway(let error):
+                throw UnifiError.badGateway(message: try error.body.json.message ?? "Bad Gateway")
+            case .undocumented(statusCode: let statusCode, _):
+                throw UnifiError.undocumented(statusCode: statusCode, message: nil)
+        }
+    }
 }
 
-func printHTTPBodyMessage(_ body: OpenAPIRuntime.HTTPBody) async -> String {
-    do {
-        // Collect up to a reasonable max size, e.g., 2 MB
-        let collectedBytes = try await Array(collecting: body, upTo: 2 * 1024 * 1024)
-        
-        // Convert the collected bytes to a string
-        if let message = String(bytes: collectedBytes, encoding: .utf8) {
-            return "HTTPBody message: \(message)"
-        } else {
-            return "Unable to decode HTTPBody message as UTF-8."
-        }
-    } catch {
-        return "Error collecting HTTPBody message: \(error)"
-    }
+public struct QueryISPSite {
+    let begin: String?
+    let end: String?
+    let hostId: String
+    let siteId: String
 }

@@ -45,15 +45,6 @@ paths:
             text/plain:
               schema:
                 $ref: '#/components/schemas/Error'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-            text/plain:
-              schema:
-                $ref: '#/components/schemas/Error'
         '429':
           description: Rate Limit Reached
           content:
@@ -125,6 +116,311 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                examples: [5]
+        '500':
+          description: Failed to get host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /ea/sites:
+    get:
+      tags:
+        - Sites
+      summary: List Sites
+      description: |-
+        Retrieve a list of all sites associated with the UI account making the API call.
+
+        **Note**: The structure of meta and statistics may vary depending on the UniFi OS or Network Server version. The example provided is based on UniFi OS 4.0.6.
+      operationId: getSites
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sites'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                examples: [5]
+        '500':
+          description: Failed to get host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /ea/devices:
+    get:
+      tags:
+        - Devices
+      summary: List Devices
+      description: |-
+        Retrieve a list of UniFi devices managed by hosts where the UI account making the API call is the owner or a super admin.
+
+        **Note**: The structure of devices.uidb may vary depending on the UniFi OS or Network Server version. The example provided is based on UniFi OS 4.0.6.
+      operationId: getDevices
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: hostIds
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: time
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Devices'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                examples: [5]
+        '500':
+          description: Failed to get host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /ea/isp-metrics/{type}:
+    get:
+      tags:
+        - ISP
+        - Metrics
+      summary: Get ISP Metrics
+      description: |-
+        Retrieve ISP metrics data for all sites linked to the UI account’s API key. 5-minute metrics are available for at least 24 hours, and 1-hour metrics for at least 30 days.
+      operationId: getISPMetrics
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
+          description: API key
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: [5m, 1h]
+            default: 5m
+          required: true
+          description: Specify whether metrics are returned using 5m or 1h intervals.
+        - in: query
+          name: beginTimeStamp
+          schema:
+            type: string
+          description: The earliest timestamp to start retrieving data from.
+        - in: query
+          name: endTimeStamp
+          schema:
+            type: string
+          description: The latest timestamp up to which data will be retrieved.
+        - in: query
+          name: duration
+          schema:
+            type: string
+          description: Specifies the time range of metrics to be retrieved, starting from when the request is made. Supports 24h for 5-minute metrics, and 7d or 30d for 1-hour metrics. This **cannot** be used with `beginTimestamp` or `endTimestamp`.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ISPMetric'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate Limit Reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                examples: [5]
+        '500':
+          description: Failed to get host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /ea/isp-metrics/{type}/query:
+    post:
+      tags:
+        - ISP
+        - Metrics
+      summary: Query ISP Metrics
+      description: |-
+        Retrieve ISP metrics data based on specific query parameters. 5-minute metrics are available for at least 24 hours, and 1-hour metrics for at least 30 days.
+
+        **Note**: If the UI account lacks access to all requested sites, a 502 error is returned. If partial access is granted, the response will include `status: partialSuccess`.
+      operationId: queryISPMetrics
+      parameters:
+        - in: header
+          name: X-API-KEY
+          schema:
+            type: string
+          required: true
+          description: API key
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: [5m, 1h]
+            default: 5m
+          required: true
+          description: Specify whether metrics are returned using 5m or 1h intervals.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryISP'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ISPMetrics'
+        '401':
+          description: Unauthorized access
           content:
             application/json:
               schema:
@@ -679,7 +975,298 @@ components:
           type: string
         traceId:
           type: string
-  
+    Sites:
+      type: object
+      properties:
+        httpStatusCode:
+          type: integer
+          format: int32
+        traceId:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              hostId:
+                type: string
+              isOwner:
+                type: boolean
+              meta:
+                type: object
+                properties:
+                  desc:
+                    type: string
+                  gatewayMac:
+                    type: string
+                  name:
+                    type: string
+                  timezone:
+                    type: string
+              permission:
+                type: string
+              siteId:
+                type: string
+              statistics:
+                type: object
+                properties:
+                  counts:
+                    type: object
+                    properties:
+                      criticalNotification:
+                        type: integer
+                        format: int32
+                      gatewayDevice:
+                        type: integer
+                        format: int32
+                      guestClient:
+                        type: integer
+                        format: int32
+                      lanConfiguration:
+                        type: integer
+                        format: int32
+                      offlineDevice:
+                        type: integer
+                        format: int32
+                      offlineGatewayDevice:
+                        type: integer
+                        format: int32
+                      offlineWifiDevice:
+                        type: integer
+                        format: int32
+                      offlineWiredDevice:
+                        type: integer
+                        format: int32
+                      pendingUpdateDevice:
+                        type: integer
+                        format: int32
+                      totalDevice:
+                        type: integer
+                        format: int32
+                      wanConfiguration:
+                        type: integer
+                        format: int32
+                      wifiClient:
+                        type: integer
+                        format: int32
+                      wifiConfiguration:
+                        type: integer
+                        format: int32
+                      wifiDevice:
+                        type: integer
+                        format: int32
+                      wiredClient:
+                        type: integer
+                        format: int32
+                      wiredDevice:
+                        type: integer
+                        format: int32
+                  internetIssues:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        highLatency:
+                          type: boolean
+                        index:
+                          type: integer
+                          format: int32
+                        latencyAvgMs:
+                          type: integer
+                          format: int32
+                        latencyMaxMs:
+                          type: integer
+                          format: int32
+                  ispInfo:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      organization:
+                        type: string
+                  percentages:
+                    type: object
+                    properties:
+                      txRetry:
+                        type: number
+                      wanUptime:
+                        type: number
+              subscriptionEndTime:
+                type: string
+    Devices:
+      type: object
+      properties:
+        httpStatusCode:
+          type: integer
+          format: int32
+        traceId:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              devices:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+              hostId:
+                type: string
+              hostName:
+                type: string
+              updatedAt:
+                type: string
+                format: date-time
+    Device:
+      type: object
+      properties:
+        adoptionTime:
+          type: string
+          format: nullable
+        firmwareStatus:
+          type: string
+        id:
+          type: string
+        ip:
+          type: string
+        isConsole:
+          type: boolean
+        isManaged:
+          type: boolean
+        mac:
+          type: string
+        model:
+          type: string
+        name:
+          type: string
+        note:
+          type: string
+          format: nullable
+        productLine:
+          type: string
+        shortname:
+          type: string
+        startupTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+        uidb:
+          type: object
+          properties:
+            guid:
+              type: string
+            id:
+              type: string
+            images:
+              type: object
+              properties:
+                default:
+                  type: string
+                nopadding:
+                  type: string
+                topology:
+                  type: string
+        updateAvailable:
+          type: string
+          format: nullable
+        version:
+          type: string
+    ISPMetric:
+      type: object
+      properties:
+        httpStatusCode:
+          type: integer
+          format: int32
+        traceId:
+          type: string
+        data:
+          type: array
+          properties:
+            items:
+              $ref: '#/components/schemas/ISPData'
+    ISPData:
+      type: object
+      properties:
+        metricType:
+          type: string
+        periods:
+          type: array
+          items:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  wan:
+                    type: object
+                    properties:
+                      avgLatency:
+                        type: integer
+                        format: int32
+                      download_kbps:
+                        type: integer
+                        format: int32
+                      downtime:
+                        type: integer
+                        format: int32
+                      ispAsn:
+                        type: string
+                      ispName:
+                        type: string
+                      maxLatency:
+                        type: integer
+                        format: int32
+                      packetLoss:
+                        type: integer
+                        format: int32
+                      upload_kbps:
+                        type: integer
+                        format: int32
+                      uptime:
+                        type: integer
+                        format: int32
+              metricTime:
+                type: string
+                format: date-time
+              version:
+                type: string
+        hostId:
+          type: string
+        siteId:
+          type: string
+    ISPMetrics:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            metrics:
+              type: array
+              items:
+                $ref: '#/components/schemas/ISPData'
+        httpStatusCode:
+          type: integer
+          format: int32
+        traceId:
+          type: string
+    QueryISP:
+      type: object
+      properties:
+        site:
+          type: array
+          items:
+            properties:
+              beginTimestamp:
+                type: string
+              endTimestamp:
+                type: string
+              hostId:
+                type: string
+              siteId:
+                type: string
+
+
   securitySchemes:
     api_key:
       type: apiKey
