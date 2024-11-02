@@ -477,29 +477,7 @@ components:
         data:
           type: array
           items:
-            properties:
-              hardwareId:
-                type: string
-              id:
-                type: string
-              ipAddress:
-                type: string
-              isBlocked:
-                type: boolean
-              lastConnectionStateChange:
-                type: string
-              latestBackupTime:
-                type: string
-              owner:
-                type: boolean
-              registrationTime:
-                type: string
-              type:
-                type: string
-              reportedState:
-                $ref: '#/components/schemas/ReportedState'
-              userData:
-                $ref: '#/components/schemas/UserData'
+            $ref: '#/components/schemas/Host'
     HostId:
       type: object
       properties:
@@ -513,30 +491,96 @@ components:
           type: integer
           examples: [200]
         data:
-          type: object
-          properties:
-            hardwareId:
-              type: string
-            id:
-              type: string
-            ipAddress:
-              type: string
-            isBlocked:
-              type: string
-            lastConnectionStateChange:
-              type: string
-            latestBackupTime:
-              type: string
-            owner:
-              type: boolean
-            registrationTime:
-              type: string
-            type:
-              type: string
-            reportedState:
-              $ref: '#/components/schemas/ReportedState'
-            userData:
-              $ref: '#/components/schemas/UserData'
+          $ref: '#/components/schemas/Host'
+    Host:
+      type: object
+      properties:
+        hardwareId:
+          type: string
+        id:
+          type: string
+        ipAddress:
+          type: string
+        isBlocked:
+          type: boolean
+        lastConnectionStateChange:
+          type: string
+        latestBackupTime:
+          type: string
+        owner:
+          type: boolean
+        registrationTime:
+          type: string
+        type:
+          type: string
+        reportedState:
+          $ref: '#/components/schemas/ReportedState'
+        userData:
+          $ref: '#/components/schemas/UserData'
+    ApplicationInfo:
+      type: object
+      properties:
+        owned:
+          type: boolean
+        required:
+          type: boolean
+        supported:
+          type: boolean
+    Applications:
+      type: object
+      properties:
+        access:
+          $ref: '#/components/schemas/ApplicationInfo'
+        connect:
+          $ref: '#/components/schemas/ApplicationInfo'
+        innerspace:
+          $ref: '#/components/schemas/ApplicationInfo'
+        network:
+          $ref: '#/components/schemas/ApplicationInfo'
+        protect:
+          $ref: '#/components/schemas/ApplicationInfo'
+        talk:
+          $ref: '#/components/schemas/ApplicationInfo'
+    RoleAttributes:
+      type: object
+      properties:
+        applications:
+          $ref: '#/components/schemas/Applications'
+        candidateRoles:
+          type: array
+          items:
+            type: string
+        connectedState:
+          type: string
+        connectedStateLastChanged:
+          type: string
+    ConsoleGroupMember:
+      type: object
+      properties:
+        mac:
+          type: string
+        role:
+          type: string
+        roleAttributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        sysID:
+          type: integer
+    Webrtc:
+      type: object
+      properties:
+        iceRestart:
+          type: boolean
+        mediaStreams:
+          type: boolean
+        twoWayAudio:
+          type: boolean
+    Floorplan:
+      type: object
+      properties:
+        canEdit:
+          type: boolean
+        canView:
+          type: boolean
     UserData:
       type: object
       properties:
@@ -547,83 +591,7 @@ components:
         consoleGroupMembers:
           type: array
           items:
-            type: object
-            properties:
-              mac:
-                type: string
-              role:
-                type: string
-              roleAttributes:
-                type: object
-                properties:
-                  applications:
-                    type: object
-                    properties:
-                      access:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                      connect:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                      innerspace:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                      network:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                      protect:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                      talk:
-                        type: object
-                        properties:
-                          owned:
-                            type: boolean
-                          required:
-                            type: boolean
-                          supported:
-                            type: boolean
-                  candidateRoles:
-                    type: array
-                    items:
-                      type: string
-                  connectedState:
-                    type: string
-                  connectedStateLastChanged:
-                    type: string
-              sysId:
-                type: integer
-                format: int32
+            $ref: '#/components/schemas/ConsoleGroupMember'
         controllers:
           type: array
           items:
@@ -636,12 +604,7 @@ components:
             deviceGroups:
               type: boolean
             floorplan:
-              type: object
-              properties:
-                canEdit:
-                  type: boolean
-                canView:
-                  type: boolean
+              $ref: '#/components/schemas/Floorplan'
             manageApplications:
               type: boolean
             notifications:
@@ -649,14 +612,7 @@ components:
             pion:
               type: boolean
             webrtc:
-              type: object
-              properties:
-                iceRestart:
-                  type: boolean
-                mediaStreams:
-                  type: boolean
-                twoWayAudio:
-                  type: boolean
+              $ref: '#/components/schemas/Webrtc'
         fullName:
           type: string
         localId:
@@ -686,7 +642,171 @@ components:
           type: string
         status:
           type: string
-
+    App:
+      type: object
+      properties:
+        controllerStatus:
+          type: string
+        name:
+          type: string
+        port:
+          type: integer
+          format: int32
+        swaiVersion:
+          type: integer
+          format: int32
+        type:
+          type: string
+        version:
+          type: string
+    Controller:
+      type: object
+      properties:
+        abridged:
+          type: boolean
+        controllerStatus:
+          type: string
+        initialDeviceListSynced:
+          type: boolean
+        installState:
+          type: string
+        isConfigured:
+          type: boolean
+        isInstalled:
+          type: boolean
+        isRunning:
+          type: boolean
+        name:
+          type: string
+        port:
+          type: integer
+          format: int32
+        releaseChannel:
+          type: string
+        required:
+          type: boolean
+        state:
+          type: string
+        status:
+          type: string
+        statusMessage:
+          type: string
+        swaiVersion:
+          type: integer
+          format: int32
+        type:
+          type: string
+        uiVersion:
+          type: string
+        unadoptedDevices:
+          type: array
+          items:
+            type: object
+            properties:
+        updatable:
+          type: boolean
+        updateAvailable:
+          type: string
+          format: nullable
+        version:
+          type: string
+        features:
+          type: object
+          properties:
+            stackable:
+              type: boolean
+        installable:
+          type: boolean
+        isGeofencingEnabled:
+          type: boolean
+        restorePercentage:
+          type: integer
+          format: int32
+    Hardware:
+      type: object
+      properties:
+        bom:
+          type: string
+        cpu.id:
+          type: string
+        debianCodename:
+          type: string
+        firmwareVersion:
+          type: string
+        hwrev:
+          type: integer
+          format: int32
+        mac:
+          type: string
+        name:
+          type: string
+        qrid:
+          type: string
+        reboot:
+          type: string
+        serialno:
+          type: string
+        shortname:
+          type: string
+        subtype:
+          type: string
+        sysid:
+          type: integer
+          format: int32
+        upgrade:
+          type: string
+        uuid:
+          type: string
+    ReportedStateFeatures:
+      type: object
+      properties:
+        cloud:
+          type: object
+          properties:
+            applicationEvents:
+              type: boolean
+            applicationEventsHttp:
+              type: boolean
+        cloudBackup:
+          type: boolean
+        deviceList:
+          type: object
+          properties:
+            autolinkDevices:
+              type: boolean
+            partialUpdates:
+              type: boolean
+            ucp4Events:
+              type: boolean
+        directRemoteConnection:
+          type: boolean
+        hasGateway:
+          type: boolean
+        hasLCM:
+          type: boolean
+        hasLED:
+          type: boolean
+        infoApis:
+          type: object
+          properties:
+            firmwareUpdate:
+              type: boolean
+        isAutomaticFailoverAvailable:
+          type: boolean
+        mfa:
+          type: boolean
+        notifications:
+          type: boolean
+        sharedTokens:
+          type: boolean
+        supportForm:
+          type: boolean
+        teleport:
+          type: boolean
+        teleportState:
+          type: string
+        uidService:
+          type: boolean
     ReportedState:
       type: object
       properties:
@@ -695,22 +815,7 @@ components:
         apps:
           type: array
           items:
-            type: object
-            properties:
-              controllerStatus:
-                type: string
-              name:
-                type: string
-              port:
-                type: integer
-                format: int32
-              swaiVersion:
-                type: integer
-                format: int32
-              type:
-                type: string
-              version:
-                type: string
+            $ref: '#/components/schemas/App'
         availableChannels:
           type: array
           items:
@@ -725,68 +830,7 @@ components:
         controllers:
           type: array
           items:
-            type: object
-            properties:
-              abridged:
-                type: boolean
-              controllerStatus:
-                type: string
-              initialDeviceListSynced:
-                type: boolean
-              installState:
-                type: string
-              isConfigured:
-                type: boolean
-              isInstalled:
-                type: boolean
-              isRunning:
-                type: boolean
-              name:
-                type: string
-              port:
-                type: integer
-                format: int32
-              releaseChannel:
-                type: string
-              required:
-                type: boolean
-              state:
-                type: string
-              status:
-                type: string
-              statusMessage:
-                type: string
-              swaiVersion:
-                type: integer
-                format: int32
-              type:
-                type: string
-              uiVersion:
-                type: string
-              unadoptedDevices:
-                type: array
-                items:
-                  type: object
-                  properties:
-              updatable:
-                type: boolean
-              updateAvailable:
-                type: string
-                format: nullable
-              version:
-                type: string
-              features:
-                type: object
-                properties:
-                  stackable:
-                    type: boolean
-              installable:
-                type: boolean
-              isGeofencingEnabled:
-                type: boolean
-              restorePercentage:
-                type: integer
-                format: int32
+            $ref: '#/components/schemas/Controller'
         country:
           type: integer
           format: int32
@@ -801,55 +845,7 @@ components:
         directConnectDomain:
           type: string
         features:
-          type: object
-          properties:
-            cloud:
-              type: object
-              properties:
-                applicationEvents:
-                  type: boolean
-                applicationEventsHttp:
-                  type: boolean
-            cloudBackup:
-              type: boolean
-            deviceList:
-              type: object
-              properties:
-                autolinkDevices:
-                  type: boolean
-                partialUpdates:
-                  type: boolean
-                ucp4Events:
-                  type: boolean
-            directRemoteConnection:
-              type: boolean
-            hasGateway:
-              type: boolean
-            hasLCM:
-              type: boolean
-            hasLED:
-              type: boolean
-            infoApis:
-              type: object
-              properties:
-                firmwareUpdate:
-                  type: boolean
-            isAutomaticFailoverAvailable:
-              type: boolean
-            mfa:
-              type: boolean
-            notifications:
-              type: boolean
-            sharedTokens:
-              type: boolean
-            supportForm:
-              type: boolean
-            teleport:
-              type: boolean
-            teleportState:
-              type: string
-            uidService:
-              type: boolean
+          $ref: '#/components/schemas/ReportedStateFeatures'
         firmwareUpdate:
           type: object
           properties:
@@ -857,40 +853,7 @@ components:
               type: string
               format: nullable
         hardware:
-          type: object
-          properties:
-            bom:
-              type: string
-            cpu.id:
-              type: string
-            debianCodename:
-              type: string
-            firmwareVersion:
-              type: string
-            hwrev:
-              type: integer
-              format: int32
-            mac:
-              type: string
-            name:
-              type: string
-            qrid:
-              type: string
-            reboot:
-              type: string
-            serialno:
-              type: string
-            shortname:
-              type: string
-            subtype:
-              type: string
-            sysid:
-              type: integer
-              format: int32
-            upgrade:
-              type: string
-            uuid:
-              type: string
+          $ref: '#/components/schemas/Hardware'
         host_type:
           type: integer
           format: int32
@@ -963,7 +926,6 @@ components:
             properties:
         version:
           type: string
-
     Error:
       type: object
       properties:
@@ -1116,7 +1078,6 @@ components:
                 type: string
               updatedAt:
                 type: string
-                format: date-time
     Device:
       type: object
       properties:
@@ -1148,7 +1109,6 @@ components:
           type: string
         startupTime:
           type: string
-          format: date-time
         status:
           type: string
         uidb:
@@ -1185,6 +1145,44 @@ components:
           properties:
             items:
               $ref: '#/components/schemas/ISPData'
+    Period:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            wan:
+              type: object
+              properties:
+                avgLatency:
+                  type: integer
+                  format: int32
+                download_kbps:
+                  type: integer
+                  format: int32
+                downtime:
+                  type: integer
+                  format: int32
+                ispAsn:
+                  type: string
+                ispName:
+                  type: string
+                maxLatency:
+                  type: integer
+                  format: int32
+                packetLoss:
+                  type: integer
+                  format: int32
+                upload_kbps:
+                  type: integer
+                  format: int32
+                uptime:
+                  type: integer
+                  format: int32
+        metricTime:
+          type: string
+        version:
+          type: string
     ISPData:
       type: object
       properties:
@@ -1193,44 +1191,7 @@ components:
         periods:
           type: array
           items:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  wan:
-                    type: object
-                    properties:
-                      avgLatency:
-                        type: integer
-                        format: int32
-                      download_kbps:
-                        type: integer
-                        format: int32
-                      downtime:
-                        type: integer
-                        format: int32
-                      ispAsn:
-                        type: string
-                      ispName:
-                        type: string
-                      maxLatency:
-                        type: integer
-                        format: int32
-                      packetLoss:
-                        type: integer
-                        format: int32
-                      upload_kbps:
-                        type: integer
-                        format: int32
-                      uptime:
-                        type: integer
-                        format: int32
-              metricTime:
-                type: string
-                format: date-time
-              version:
-                type: string
+            $ref: '#/components/schemas/Period'
         hostId:
           type: string
         siteId:
@@ -1250,21 +1211,24 @@ components:
           format: int32
         traceId:
           type: string
+    Properties:
+      type: object
+      properties:
+        beginTimestamp:
+          type: string
+        endTimestamp:
+          type: string
+        hostId:
+          type: string
+        siteId:
+          type: string
     QueryISP:
       type: object
       properties:
         site:
           type: array
           items:
-            properties:
-              beginTimestamp:
-                type: string
-              endTimestamp:
-                type: string
-              hostId:
-                type: string
-              siteId:
-                type: string
+            $ref: '#/components/schemas/Properties'
 
 
   securitySchemes:

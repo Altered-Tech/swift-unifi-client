@@ -30,14 +30,14 @@ public struct UnifiClient {
         )
     }
     
-    public func getHosts() async throws -> Components.Schemas.Hosts.dataPayload? {
+    public func getHosts() async throws -> Hosts {
         let result = try await underlyingClient.listHosts(
             .init(headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey))
         )
         switch result {
                 
             case .ok(let value):
-                return try value.body.json.data
+                return Hosts(client: try value.body.json)
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -55,7 +55,7 @@ public struct UnifiClient {
         }
     }
     
-    public func getHost(id: String) async throws -> Components.Schemas.HostId.dataPayload? {
+    public func getHost(id: String) async throws -> HostId {
         let result = try await underlyingClient.getHost(
             .init(
                 path: .init(id: id),
@@ -65,7 +65,7 @@ public struct UnifiClient {
         switch result {
                 
             case .ok(let value):
-                return try value.body.json.data
+                return HostId(client: try value.body.json)
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .notFound(let error):
@@ -166,15 +166,13 @@ public struct UnifiClient {
     }
     // query isp metrics
     public func queryISPMetrics(type: Operations.queryISPMetrics.Input.Path._typePayload, sites: [QueryISPSite]) async throws -> Components.Schemas.ISPMetrics {
-        var siteBody: Components.Schemas.QueryISP.sitePayload = []
+        var siteBody: [Components.Schemas.Properties] = []
         for site in sites {
             siteBody.append(
-                        .init(
-                            beginTimestamp: site.begin,
-                            endTimestamp: site.end,
-                            hostId: site.hostId,
-                            siteId: site.siteId
-                        )
+                .init(beginTimestamp: site.begin,
+                      endTimestamp: site.end,
+                      hostId: site.hostId,
+                      siteId: site.siteId)
                     )
         }
         let response = try await underlyingClient.queryISPMetrics(
