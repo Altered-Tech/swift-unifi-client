@@ -17,4 +17,10 @@ public struct Uidb {
         self.id = response?.id
         self.images = Images(response: response?.images)
     }
+    
+    internal init(response: Components.Schemas.Device.uidbPayload?) {
+        self.guid = response?.guid
+        self.id = response?.id
+        self.images = Images(response: response?.images)
+    }
 }

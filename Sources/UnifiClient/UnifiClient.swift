@@ -30,14 +30,14 @@ public struct UnifiClient {
         )
     }
     
-    public func getHosts() async throws -> Hosts {
+    public func getHosts() async throws -> [Host]? {
         let result = try await underlyingClient.listHosts(
             .init(headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey))
         )
         switch result {
                 
             case .ok(let value):
-                return Hosts(client: try value.body.json)
+                return Hosts(client: try value.body.json).hosts
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -55,7 +55,7 @@ public struct UnifiClient {
         }
     }
     
-    public func getHost(id: String) async throws -> HostId {
+    public func getHost(id: String) async throws -> Host? {
         let result = try await underlyingClient.getHost(
             .init(
                 path: .init(id: id),
@@ -65,7 +65,7 @@ public struct UnifiClient {
         switch result {
                 
             case .ok(let value):
-                return HostId(client: try value.body.json)
+                return HostId(client: try value.body.json).host
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .notFound(let error):
@@ -85,7 +85,7 @@ public struct UnifiClient {
         }
     }
     // list sites
-    public func getSites() async throws -> Components.Schemas.Sites {
+    public func getSites() async throws -> [Site]? {
         let response = try await underlyingClient.getSites(
             headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
         )
@@ -93,7 +93,7 @@ public struct UnifiClient {
         switch response {
                 
             case .ok(let result):
-                return try result.body.json
+                return Sites(response: try result.body.json).sites
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -111,7 +111,7 @@ public struct UnifiClient {
         }
     }
     // list devices
-    public func getDevices() async throws -> Components.Schemas.Devices {
+    public func getDevices() async throws -> [SiteDevices]? {
         let response = try await underlyingClient.getDevices(
             headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
         )
@@ -119,7 +119,9 @@ public struct UnifiClient {
         switch response {
                 
             case .ok(let result):
-                return try result.body.json
+                return AllSiteDevices(
+                    response: try result.body.json
+                ).siteDevices
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):

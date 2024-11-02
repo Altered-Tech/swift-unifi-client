@@ -251,7 +251,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Devices'
+                $ref: '#/components/schemas/AllSiteDevices'
         '401':
           description: Unauthorized access
           content:
@@ -937,6 +937,120 @@ components:
           type: string
         traceId:
           type: string
+    SiteDeviceCounts:
+      type: object
+      properties:
+        criticalNotification:
+          type: integer
+          format: int32
+        gatewayDevice:
+          type: integer
+          format: int32
+        guestClient:
+          type: integer
+          format: int32
+        lanConfiguration:
+          type: integer
+          format: int32
+        offlineDevice:
+          type: integer
+          format: int32
+        offlineGatewayDevice:
+          type: integer
+          format: int32
+        offlineWifiDevice:
+          type: integer
+          format: int32
+        offlineWiredDevice:
+          type: integer
+          format: int32
+        pendingUpdateDevice:
+          type: integer
+          format: int32
+        totalDevice:
+          type: integer
+          format: int32
+        wanConfiguration:
+          type: integer
+          format: int32
+        wifiClient:
+          type: integer
+          format: int32
+        wifiConfiguration:
+          type: integer
+          format: int32
+        wifiDevice:
+          type: integer
+          format: int32
+        wiredClient:
+          type: integer
+          format: int32
+        wiredDevice:
+          type: integer
+          format: int32
+    InternetIssues:
+      type: object
+      properties:
+        highLatency:
+          type: boolean
+        index:
+          type: integer
+          format: int32
+        latencyAvgMs:
+          type: integer
+          format: int32
+        latencyMaxMs:
+          type: integer
+          format: int32
+    SiteDeviceInfo:
+      type: object
+      properties:
+        desc:
+          type: string
+        gatewayMac:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+    Site:
+      type: object
+      properties:
+        hostId:
+          type: string
+        isOwner:
+          type: boolean
+        meta:
+          $ref: '#/components/schemas/SiteDeviceInfo'
+        permission:
+          type: string
+        siteId:
+          type: string
+        statistics:
+          type: object
+          properties:
+            counts:
+              $ref: '#/components/schemas/SiteDeviceCounts'
+            internetIssues:
+              type: array
+              items:
+                $ref: '#/components/schemas/InternetIssues'
+            ispInfo:
+              type: object
+              properties:
+                name:
+                  type: string
+                organization:
+                  type: string
+            percentages:
+              type: object
+              properties:
+                txRetry:
+                  type: number
+                wanUptime:
+                  type: number
+        subscriptionEndTime:
+          type: string
     Sites:
       type: object
       properties:
@@ -948,114 +1062,21 @@ components:
         data:
           type: array
           items:
-            type: object
-            properties:
-              hostId:
-                type: string
-              isOwner:
-                type: boolean
-              meta:
-                type: object
-                properties:
-                  desc:
-                    type: string
-                  gatewayMac:
-                    type: string
-                  name:
-                    type: string
-                  timezone:
-                    type: string
-              permission:
-                type: string
-              siteId:
-                type: string
-              statistics:
-                type: object
-                properties:
-                  counts:
-                    type: object
-                    properties:
-                      criticalNotification:
-                        type: integer
-                        format: int32
-                      gatewayDevice:
-                        type: integer
-                        format: int32
-                      guestClient:
-                        type: integer
-                        format: int32
-                      lanConfiguration:
-                        type: integer
-                        format: int32
-                      offlineDevice:
-                        type: integer
-                        format: int32
-                      offlineGatewayDevice:
-                        type: integer
-                        format: int32
-                      offlineWifiDevice:
-                        type: integer
-                        format: int32
-                      offlineWiredDevice:
-                        type: integer
-                        format: int32
-                      pendingUpdateDevice:
-                        type: integer
-                        format: int32
-                      totalDevice:
-                        type: integer
-                        format: int32
-                      wanConfiguration:
-                        type: integer
-                        format: int32
-                      wifiClient:
-                        type: integer
-                        format: int32
-                      wifiConfiguration:
-                        type: integer
-                        format: int32
-                      wifiDevice:
-                        type: integer
-                        format: int32
-                      wiredClient:
-                        type: integer
-                        format: int32
-                      wiredDevice:
-                        type: integer
-                        format: int32
-                  internetIssues:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        highLatency:
-                          type: boolean
-                        index:
-                          type: integer
-                          format: int32
-                        latencyAvgMs:
-                          type: integer
-                          format: int32
-                        latencyMaxMs:
-                          type: integer
-                          format: int32
-                  ispInfo:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                      organization:
-                        type: string
-                  percentages:
-                    type: object
-                    properties:
-                      txRetry:
-                        type: number
-                      wanUptime:
-                        type: number
-              subscriptionEndTime:
-                type: string
-    Devices:
+            $ref: '#/components/schemas/Site'
+    SiteDevices:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+        hostId:
+          type: string
+        hostName:
+          type: string
+        updatedAt:
+          type: string
+    AllSiteDevices:
       type: object
       properties:
         httpStatusCode:
@@ -1066,18 +1087,7 @@ components:
         data:
           type: array
           items:
-            type: object
-            properties:
-              devices:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Device'
-              hostId:
-                type: string
-              hostName:
-                type: string
-              updatedAt:
-                type: string
+            $ref: '#/components/schemas/SiteDevices'
     Device:
       type: object
       properties:

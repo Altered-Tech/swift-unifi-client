@@ -17,4 +17,10 @@ public struct Images {
         self.nopadding = response?.nopadding
         self.topology = response?.topology
     }
+    
+    internal init(response: Components.Schemas.Device.uidbPayload.imagesPayload?) {
+        self.imagesDefault = response?._default
+        self.nopadding = response?.nopadding
+        self.topology = response?.topology
+    }
 }
