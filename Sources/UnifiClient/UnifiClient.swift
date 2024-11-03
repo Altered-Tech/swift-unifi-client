@@ -139,9 +139,9 @@ public struct UnifiClient {
         }
     }
     // get isp metrics
-    public func getIspMetrics(type: Operations.getISPMetrics.Input.Path._typePayload, start: String? = nil, end: String? = nil, duration: String? = nil) async throws -> Components.Schemas.ISPMetric {
+    public func getIspMetrics(type: TimeRange, start: String? = nil, end: String? = nil, duration: String? = nil) async throws -> [ISPData]? {
         let response = try await underlyingClient.getISPMetrics(
-            path: .init(_type: type),
+            path: .init(_type: type.convertToGet()),
             query: .init(beginTimeStamp: start, endTimeStamp: end, duration: duration),
             headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey)
         )
@@ -149,7 +149,7 @@ public struct UnifiClient {
         switch response {
                 
             case .ok(let result):
-                return try result.body.json
+                return ISP(response: try result.body.json).data
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -167,7 +167,7 @@ public struct UnifiClient {
         }
     }
     // query isp metrics
-    public func queryISPMetrics(type: Operations.queryISPMetrics.Input.Path._typePayload, sites: [QueryISPSite]) async throws -> Components.Schemas.ISPMetrics {
+    public func queryISPMetrics(type: TimeRange, sites: [QueryISPSite]) async throws -> [ISPData]? {
         var siteBody: [Components.Schemas.Properties] = []
         for site in sites {
             siteBody.append(
@@ -178,7 +178,7 @@ public struct UnifiClient {
                     )
         }
         let response = try await underlyingClient.queryISPMetrics(
-            path: .init(_type: type),
+            path: .init(_type: type.convertToQuery()),
             headers: .init(X_hyphen_API_hyphen_KEY: self.apiKey),
             body: .json(.init(site: .some(siteBody)))
         )
@@ -186,7 +186,7 @@ public struct UnifiClient {
         switch response {
                 
             case .ok(let result):
-                return try result.body.json
+                return ISPQuery(response: try result.body.json).data?.metrics
             case .unauthorized(let error):
                 throw UnifiError.unauthorized(message: try error.body.json.message ?? "Unauthorized")
             case .tooManyRequests(let error):
@@ -205,9 +205,4 @@ public struct UnifiClient {
     }
 }
 
-public struct QueryISPSite {
-    let begin: String?
-    let end: String?
-    let hostId: String
-    let siteId: String
-}
+

@@ -1,7 +1,7 @@
 import Foundation
 
-// MARK: - Period
-public struct Period {
+// MARK: - Periods
+public struct Periods {
     public let index: Int32?
 
     public init(index: Int32) {

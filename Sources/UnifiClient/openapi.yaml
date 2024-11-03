@@ -1152,9 +1152,8 @@ components:
           type: string
         data:
           type: array
-          properties:
-            items:
-              $ref: '#/components/schemas/ISPData'
+          items:
+            $ref: '#/components/schemas/ISPData'
     Period:
       type: object
       properties:
